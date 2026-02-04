@@ -1,0 +1,724 @@
+{
+  "timestamp": "2026-02-04T22:19:48.365813",
+  "total": 31,
+  "profitable_count": 19,
+  "profitable": [
+    {
+      "address": "0xc51b211fe1f47982b27a35ad56de634d7391c206",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 1202.511101870285,
+      "total_out": 0.0968135837818863,
+      "net_pnl": 1202.4142882865033,
+      "is_profitable": true
+    },
+    {
+      "address": "0xb878a06dde8e7e8dbc61d94c89b7bc9ad6b9183d",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 1174.80880654035,
+      "total_out": 393.21836468471776,
+      "net_pnl": 781.5904418556322,
+      "is_profitable": true
+    },
+    {
+      "address": "0x6c8c3784151932a06f32606f99a49b76ab7b8905",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 790.0172933579314,
+      "total_out": 271.4330411780162,
+      "net_pnl": 518.5842521799152,
+      "is_profitable": true
+    },
+    {
+      "address": "0x07438f04d1045a2a11f5fce0f7f134caff5cf7c5",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 2573.0812254835723,
+      "total_out": 2125.6527756502564,
+      "net_pnl": 447.4284498333159,
+      "is_profitable": true
+    },
+    {
+      "address": "0xafa8dff3da05e34026a44e9862d72a1d840af5fd",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 1729.198002877349,
+      "total_out": 1376.8047930724367,
+      "net_pnl": 352.3932098049122,
+      "is_profitable": true
+    },
+    {
+      "address": "0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 588.5844072699849,
+      "total_out": 337.74329140283555,
+      "net_pnl": 250.84111586714937,
+      "is_profitable": true
+    },
+    {
+      "address": "0xb300000b72deaeb607a12d5f54773d1c19c7028d",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 159.16276342341502,
+      "total_out": 0.00463689560358464,
+      "net_pnl": 159.15812652781142,
+      "is_profitable": true
+    },
+    {
+      "address": "0xc2f5f219b8e429f85dc4d3575fc704f85178bbb4",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 105.1760790705081,
+      "total_out": 2.5054922316766075,
+      "net_pnl": 102.67058683883148,
+      "is_profitable": true
+    },
+    {
+      "address": "0x568dc476b4af661248caea5f43ba861aee1a03fe",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 172.4561891480345,
+      "total_out": 74.04610566702995,
+      "net_pnl": 98.41008348100455,
+      "is_profitable": true
+    },
+    {
+      "address": "0x8f43762f7ebe394f53a40abe4002706ac2dde4d8",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 54.052870316219305,
+      "total_out": 0,
+      "net_pnl": 54.052870316219305,
+      "is_profitable": true
+    },
+    {
+      "address": "0xd7f1dd5d49206349cae8b585fcb0ce3d96f1696f",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 372.2056888950213,
+      "total_out": 338.3600752349018,
+      "net_pnl": 33.84561366011951,
+      "is_profitable": true
+    },
+    {
+      "address": "0x686f92c05fdc08e27849a806c60c422fa143fec0",
+      "token_count": 4,
+      "tokens": [
+        "STARKBOT",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 102.31359109532843,
+      "total_out": 90.64367203397711,
+      "net_pnl": 11.669919061351322,
+      "is_profitable": true
+    },
+    {
+      "address": "0x80c9faf6ee0538f7a11be306e73b365bb092b56f",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "MoltX"
+      ],
+      "total_in": 181.81499970094362,
+      "total_out": 178.7387680338021,
+      "net_pnl": 3.0762316671415135,
+      "is_profitable": true
+    },
+    {
+      "address": "0xc52436e43a1ac8e5fe995729bed0a13dd0caebde",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "MoltX"
+      ],
+      "total_in": 2502.7977959140717,
+      "total_out": 2500.0252705196126,
+      "net_pnl": 2.7725253944590804,
+      "is_profitable": true
+    },
+    {
+      "address": "0xa31c6154c69eb8a12b152148fecdfe20984673c6",
+      "token_count": 4,
+      "tokens": [
+        "STARKBOT",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 2.4227274036788615,
+      "total_out": 0,
+      "net_pnl": 2.4227274036788615,
+      "is_profitable": true
+    },
+    {
+      "address": "0xd5a28e76ea4f9eaae67c6e72a78a263ab88a7240",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "MoltX"
+      ],
+      "total_in": 121.09269675797631,
+      "total_out": 120.81330187443464,
+      "net_pnl": 0.27939488354166997,
+      "is_profitable": true
+    },
+    {
+      "address": "0xda5d3db64c8b0184094587fd61036b0d9f4b07a7",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 53.18978089830616,
+      "total_out": 52.926519916961404,
+      "net_pnl": 0.2632609813447573,
+      "is_profitable": true
+    },
+    {
+      "address": "0x5cdbacbb6c2f22a7b4a05cf4a18939af11e6640c",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 326.83130420497787,
+      "total_out": 326.8310262049779,
+      "net_pnl": 0.0002779999999802385,
+      "is_profitable": true
+    },
+    {
+      "address": "0x0fcac079725a94846340a8c5e2934c5102493467",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 68.19960389111452,
+      "total_out": 68.19959757587655,
+      "net_pnl": 6.3152379681241655e-06,
+      "is_profitable": true
+    }
+  ],
+  "all": [
+    {
+      "address": "0xafa8dff3da05e34026a44e9862d72a1d840af5fd",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 1729.198002877349,
+      "total_out": 1376.8047930724367,
+      "net_pnl": 352.3932098049122,
+      "is_profitable": true
+    },
+    {
+      "address": "0xb300000b72deaeb607a12d5f54773d1c19c7028d",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 159.16276342341502,
+      "total_out": 0.00463689560358464,
+      "net_pnl": 159.15812652781142,
+      "is_profitable": true
+    },
+    {
+      "address": "0xda5d3db64c8b0184094587fd61036b0d9f4b07a7",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 53.18978089830616,
+      "total_out": 52.926519916961404,
+      "net_pnl": 0.2632609813447573,
+      "is_profitable": true
+    },
+    {
+      "address": "0x00000000009726632680fb29d3f7a9734e3010e2",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 438.18077879272556,
+      "total_out": 888.6528872703472,
+      "net_pnl": -450.4721084776216,
+      "is_profitable": false
+    },
+    {
+      "address": "0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 588.5844072699849,
+      "total_out": 337.74329140283555,
+      "net_pnl": 250.84111586714937,
+      "is_profitable": true
+    },
+    {
+      "address": "0xc51b211fe1f47982b27a35ad56de634d7391c206",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 1202.511101870285,
+      "total_out": 0.0968135837818863,
+      "net_pnl": 1202.4142882865033,
+      "is_profitable": true
+    },
+    {
+      "address": "0xe9f317380548b9b31a9c3b860d6d09bf098fc61b",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 19.287223375901544,
+      "total_out": 213.29806122663436,
+      "net_pnl": -194.01083785073283,
+      "is_profitable": false
+    },
+    {
+      "address": "0x9971a3bbf7af2988248af00e6cb38e9d47502a88",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 6.846321305918972,
+      "total_out": 148.64555681382757,
+      "net_pnl": -141.7992355079086,
+      "is_profitable": false
+    },
+    {
+      "address": "0x8f43762f7ebe394f53a40abe4002706ac2dde4d8",
+      "token_count": 5,
+      "tokens": [
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH",
+        "MOLT",
+        "KellyClaude"
+      ],
+      "total_in": 54.052870316219305,
+      "total_out": 0,
+      "net_pnl": 54.052870316219305,
+      "is_profitable": true
+    },
+    {
+      "address": "0x07438f04d1045a2a11f5fce0f7f134caff5cf7c5",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 2573.0812254835723,
+      "total_out": 2125.6527756502564,
+      "net_pnl": 447.4284498333159,
+      "is_profitable": true
+    },
+    {
+      "address": "0x88572c2c54fe9c1cf80017675280e9fcb65c61a1",
+      "token_count": 4,
+      "tokens": [
+        "STARKBOT",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 13.024953736266538,
+      "total_out": 13.245645976069449,
+      "net_pnl": -0.22069223980291142,
+      "is_profitable": false
+    },
+    {
+      "address": "0x6c8c3784151932a06f32606f99a49b76ab7b8905",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 790.0172933579314,
+      "total_out": 271.4330411780162,
+      "net_pnl": 518.5842521799152,
+      "is_profitable": true
+    },
+    {
+      "address": "0x80c9faf6ee0538f7a11be306e73b365bb092b56f",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "MoltX"
+      ],
+      "total_in": 181.81499970094362,
+      "total_out": 178.7387680338021,
+      "net_pnl": 3.0762316671415135,
+      "is_profitable": true
+    },
+    {
+      "address": "0xb878a06dde8e7e8dbc61d94c89b7bc9ad6b9183d",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 1174.80880654035,
+      "total_out": 393.21836468471776,
+      "net_pnl": 781.5904418556322,
+      "is_profitable": true
+    },
+    {
+      "address": "0xd7f1dd5d49206349cae8b585fcb0ce3d96f1696f",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 372.2056888950213,
+      "total_out": 338.3600752349018,
+      "net_pnl": 33.84561366011951,
+      "is_profitable": true
+    },
+    {
+      "address": "0x7d37928ef954a0ff3393d15b53e5b36571077777",
+      "token_count": 4,
+      "tokens": [
+        "STARKBOT",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 121.45284667198688,
+      "total_out": 123.80951573297384,
+      "net_pnl": -2.3566690609869596,
+      "is_profitable": false
+    },
+    {
+      "address": "0x686f92c05fdc08e27849a806c60c422fa143fec0",
+      "token_count": 4,
+      "tokens": [
+        "STARKBOT",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 102.31359109532843,
+      "total_out": 90.64367203397711,
+      "net_pnl": 11.669919061351322,
+      "is_profitable": true
+    },
+    {
+      "address": "0xc2f5f219b8e429f85dc4d3575fc704f85178bbb4",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 105.1760790705081,
+      "total_out": 2.5054922316766075,
+      "net_pnl": 102.67058683883148,
+      "is_profitable": true
+    },
+    {
+      "address": "0xd5a28e76ea4f9eaae67c6e72a78a263ab88a7240",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "MoltX"
+      ],
+      "total_in": 121.09269675797631,
+      "total_out": 120.81330187443464,
+      "net_pnl": 0.27939488354166997,
+      "is_profitable": true
+    },
+    {
+      "address": "0x0fcac079725a94846340a8c5e2934c5102493467",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 68.19960389111452,
+      "total_out": 68.19959757587655,
+      "net_pnl": 6.3152379681241655e-06,
+      "is_profitable": true
+    },
+    {
+      "address": "0x22dcd83530087052b099cd627c5d330af7ac82ab",
+      "token_count": 4,
+      "tokens": [
+        "STARKBOT",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 82.5278214687402,
+      "total_out": 91.02981069444522,
+      "net_pnl": -8.501989225705017,
+      "is_profitable": false
+    },
+    {
+      "address": "0xb92fe925dc43a0ecde6c8b1a2709c170ec4fff4f",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 0,
+      "total_out": 0,
+      "net_pnl": 0,
+      "is_profitable": false
+    },
+    {
+      "address": "0xa31c6154c69eb8a12b152148fecdfe20984673c6",
+      "token_count": 4,
+      "tokens": [
+        "STARKBOT",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 2.4227274036788615,
+      "total_out": 0,
+      "net_pnl": 2.4227274036788615,
+      "is_profitable": true
+    },
+    {
+      "address": "0x2a485730bfae72e8a49c5a94595ee39c5eb9b240",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "MoltX"
+      ],
+      "total_in": 0,
+      "total_out": 0,
+      "net_pnl": 0,
+      "is_profitable": false
+    },
+    {
+      "address": "0x23cf7ea4b56760c5ed3216173e4a2aa05225be1f",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 0.8538867309648257,
+      "total_out": 22.24948365594894,
+      "net_pnl": -21.395596924984112,
+      "is_profitable": false
+    },
+    {
+      "address": "0x568dc476b4af661248caea5f43ba861aee1a03fe",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 172.4561891480345,
+      "total_out": 74.04610566702995,
+      "net_pnl": 98.41008348100455,
+      "is_profitable": true
+    },
+    {
+      "address": "0x5cdbacbb6c2f22a7b4a05cf4a18939af11e6640c",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "MoltX",
+        "CLAWNCH"
+      ],
+      "total_in": 326.83130420497787,
+      "total_out": 326.8310262049779,
+      "net_pnl": 0.0002779999999802385,
+      "is_profitable": true
+    },
+    {
+      "address": "0xc52436e43a1ac8e5fe995729bed0a13dd0caebde",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "MoltX"
+      ],
+      "total_in": 2502.7977959140717,
+      "total_out": 2500.0252705196126,
+      "net_pnl": 2.7725253944590804,
+      "is_profitable": true
+    },
+    {
+      "address": "0x534c6e5e62f127b1bd6e13594aec7473a16c82ec",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MoltX",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 40.35515919907697,
+      "total_out": 572.2191796369234,
+      "net_pnl": -531.8640204378464,
+      "is_profitable": false
+    },
+    {
+      "address": "0x671ca46a9500aeea5c97dd74f19a58284d75b212",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 0.7274971622682094,
+      "total_out": 137.64426227247822,
+      "net_pnl": -136.91676511021,
+      "is_profitable": false
+    },
+    {
+      "address": "0x79ad284530f3aaf8217ac0a08191711e0dc3deb5",
+      "token_count": 4,
+      "tokens": [
+        "KellyClaude",
+        "MOLT",
+        "STARKBOT",
+        "CLAWNCH"
+      ],
+      "total_in": 1.1064170395754824,
+      "total_out": 25.25750363232885,
+      "net_pnl": -24.151086592753366,
+      "is_profitable": false
+    }
+  ]
+}

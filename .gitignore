@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Data (büyük dosyalar - checkpoint'ler hariç)
+data/eth_pnl_checkpoint.json
+data/monitor_checkpoint.json
+# Cüzdan dosyaları repo'ya dahil edilecek
+# data/*.json
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
