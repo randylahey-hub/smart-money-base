@@ -1,0 +1,906 @@
+{
+  "timestamp": "2026-02-03T23:03:20.785524",
+  "count": 11,
+  "criteria": {
+    "min_mcap": 1500000,
+    "min_volume_24h": 500000,
+    "age_hours": "24-168"
+  },
+  "tokens": [
+    {
+      "chainId": "base",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/base/0x15f351bf1637b43d70631ba95fb9bbb1ff21761c29b034c1b380aecb922464dd",
+      "pairAddress": "0x15f351bf1637b43d70631ba95fb9bbb1ff21761c29b034c1b380aecb922464dd",
+      "labels": [
+        "v4"
+      ],
+      "baseToken": {
+        "address": "0xB695559b26BB2c9703ef1935c37AeaE9526bab07",
+        "name": "Moltbook",
+        "symbol": "MOLT"
+      },
+      "quoteToken": {
+        "address": "0x4200000000000000000000000000000000000006",
+        "name": "Wrapped Ether",
+        "symbol": "WETH"
+      },
+      "priceNative": "0.0000001239",
+      "priceUsd": "0.0002735",
+      "txns": {
+        "m5": {
+          "buys": 1,
+          "sells": 20
+        },
+        "h1": {
+          "buys": 117,
+          "sells": 194
+        },
+        "h6": {
+          "buys": 1237,
+          "sells": 2437
+        },
+        "h24": {
+          "buys": 3648,
+          "sells": 7868
+        }
+      },
+      "volume": {
+        "h24": 7122135.48,
+        "h6": 2324270.93,
+        "h1": 194062.52,
+        "m5": 10297.1
+      },
+      "priceChange": {
+        "m5": -1.38,
+        "h1": 19.63,
+        "h6": -21.13,
+        "h24": -25.1
+      },
+      "liquidity": {
+        "usd": 4654649.5,
+        "base": 11601046753,
+        "quote": 671.1645
+      },
+      "fdv": 27355550,
+      "marketCap": 27355550,
+      "pairCreatedAt": 1769620867000,
+      "info": {
+        "imageUrl": "https://cdn.dexscreener.com/cms/images/09d504dd6c2e0a087c678f04feb1dfa8e0c229237965cded3d3b15de924d3c54?width=800&height=800&quality=90",
+        "header": "https://cdn.dexscreener.com/cms/images/4a6764c840da53192b7de37683a786e2f6d5bd3f60e4e69e5a24c6dc8f3f6bff?width=1500&height=500&quality=90",
+        "openGraph": "https://cdn.dexscreener.com/token-images/og/base/0xb695559b26bb2c9703ef1935c37aeae9526bab07?timestamp=1770149100000",
+        "websites": [
+          {
+            "url": "https://www.moltbook.com/",
+            "label": "Website"
+          },
+          {
+            "url": "https://basescan.org/tx/0x592835d5d221911b2a79ad947df8b22723626e627cc9a27abc03edb1828ebd22",
+            "label": "First claim from Moltbook"
+          },
+          {
+            "url": "https://basescan.org/address/0xfc72b05ff4970b5744f29884f6d361be2ae0b9db",
+            "label": "Moltbook wallet"
+          }
+        ],
+        "socials": [
+          {
+            "url": "https://x.com/MattPRD/status/2016560277333168540?",
+            "type": "twitter"
+          }
+        ]
+      }
+    },
+    {
+      "chainId": "base",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/base/0x03d3c21ea1daf51dd2898ebaf9342a93374877ba6ab34cc7ffe5b5d43ee46e0a",
+      "pairAddress": "0x03d3c21ea1daf51dd2898ebaf9342a93374877ba6ab34cc7ffe5b5d43ee46e0a",
+      "labels": [
+        "v4"
+      ],
+      "baseToken": {
+        "address": "0xa1F72459dfA10BAD200Ac160eCd78C6b77a747be",
+        "name": "CLAWNCH",
+        "symbol": "CLAWNCH"
+      },
+      "quoteToken": {
+        "address": "0x4200000000000000000000000000000000000006",
+        "name": "Wrapped Ether",
+        "symbol": "WETH"
+      },
+      "priceNative": "0.00000004455",
+      "priceUsd": "0.00009833",
+      "txns": {
+        "m5": {
+          "buys": 4,
+          "sells": 9
+        },
+        "h1": {
+          "buys": 167,
+          "sells": 107
+        },
+        "h6": {
+          "buys": 1605,
+          "sells": 1093
+        },
+        "h24": {
+          "buys": 4400,
+          "sells": 3292
+        }
+      },
+      "volume": {
+        "h24": 5264788.32,
+        "h6": 1702543.55,
+        "h1": 225791.9,
+        "m5": 2370.39
+      },
+      "priceChange": {
+        "m5": -0.24,
+        "h1": 7.2,
+        "h6": -34.6,
+        "h24": -38.32
+      },
+      "liquidity": {
+        "usd": 1764501.88,
+        "base": 9927740998,
+        "quote": 357.2095
+      },
+      "fdv": 9821722,
+      "marketCap": 9821722,
+      "pairCreatedAt": 1769829237000,
+      "info": {
+        "imageUrl": "https://cdn.dexscreener.com/cms/images/10a69979845ab081f7a37fcaba5e2eb772cd5fe2fa92f7920209e7bb8225997c?width=800&height=800&quality=90",
+        "header": "https://cdn.dexscreener.com/cms/images/10ccb671c39ace2810e58d1d269678c9dc78d04d4d9d0c266ef14645345dabc0?width=1500&height=500&quality=90",
+        "openGraph": "https://cdn.dexscreener.com/token-images/og/base/0xa1f72459dfa10bad200ac160ecd78c6b77a747be?timestamp=1770149100000",
+        "websites": [
+          {
+            "url": "https://clawn.ch",
+            "label": "Website"
+          },
+          {
+            "url": "https://clawn.ch/skill.md",
+            "label": "Docs"
+          }
+        ],
+        "socials": [
+          {
+            "url": "https://x.com/i/communities/2017458104024068470",
+            "type": "twitter"
+          }
+        ]
+      }
+    },
+    {
+      "chainId": "base",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/base/0x7eac33d5641697366eaec3234147fd98ba25f01acca66a51a48bd129fc532145",
+      "pairAddress": "0x7eac33d5641697366eaec3234147fd98ba25f01acca66a51a48bd129fc532145",
+      "labels": [
+        "v4"
+      ],
+      "baseToken": {
+        "address": "0x50D2280441372486BeecdD328c1854743EBaCb07",
+        "name": "KellyClaude",
+        "symbol": "KellyClaude"
+      },
+      "quoteToken": {
+        "address": "0x4200000000000000000000000000000000000006",
+        "name": "Wrapped Ether",
+        "symbol": "WETH"
+      },
+      "priceNative": "0.00000003228",
+      "priceUsd": "0.00007125",
+      "txns": {
+        "m5": {
+          "buys": 8,
+          "sells": 36
+        },
+        "h1": {
+          "buys": 177,
+          "sells": 457
+        },
+        "h6": {
+          "buys": 1053,
+          "sells": 2229
+        },
+        "h24": {
+          "buys": 4127,
+          "sells": 9373
+        }
+      },
+      "volume": {
+        "h24": 5129841.28,
+        "h6": 1477402.65,
+        "h1": 350812.76,
+        "m5": 5206.71
+      },
+      "priceChange": {
+        "m5": -2.04,
+        "h1": 55.97,
+        "h6": 1.03,
+        "h24": -0.64
+      },
+      "liquidity": {
+        "usd": 1643337.99,
+        "base": 15388744314,
+        "quote": 247.7802
+      },
+      "fdv": 7125591,
+      "marketCap": 7125591,
+      "pairCreatedAt": 1769787549000,
+      "info": {
+        "imageUrl": "https://cdn.dexscreener.com/cms/images/3b7b56655acddda3d97734a2382ac81fdc5da02298f8671ffdfbb905ea24fc9b?width=800&height=800&quality=90",
+        "openGraph": "https://cdn.dexscreener.com/token-images/og/base/0x50d2280441372486beecdd328c1854743ebacb07?timestamp=1770149100000",
+        "websites": [
+          {
+            "url": "https://moltbook.com/u/KellyClaude",
+            "label": "Website"
+          }
+        ],
+        "socials": [
+          {
+            "url": "https://x.com/Austen",
+            "type": "twitter"
+          }
+        ]
+      }
+    },
+    {
+      "chainId": "base",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/base/0x33cd8c16ed8c72393f4053867cab505a24140f31d21e5fdb6564a57a9a60d906",
+      "pairAddress": "0x33cd8c16ed8c72393f4053867cab505a24140f31d21e5fdb6564a57a9a60d906",
+      "labels": [
+        "v4"
+      ],
+      "baseToken": {
+        "address": "0xB9c701A8cD4d4C1079664BA2DaeDD9f065CDfB07",
+        "name": "MoltX",
+        "symbol": "MoltX"
+      },
+      "quoteToken": {
+        "address": "0x4200000000000000000000000000000000000006",
+        "name": "Wrapped Ether",
+        "symbol": "WETH"
+      },
+      "priceNative": "0.000000007597",
+      "priceUsd": "0.00001676",
+      "txns": {
+        "m5": {
+          "buys": 7,
+          "sells": 31
+        },
+        "h1": {
+          "buys": 298,
+          "sells": 796
+        },
+        "h6": {
+          "buys": 1393,
+          "sells": 3265
+        },
+        "h24": {
+          "buys": 4782,
+          "sells": 10174
+        }
+      },
+      "volume": {
+        "h24": 3723553.49,
+        "h6": 1265525.32,
+        "h1": 364863.95,
+        "m5": 3523.71
+      },
+      "priceChange": {
+        "m5": 0.62,
+        "h1": 93.25,
+        "h6": 5.76,
+        "h24": -30.77
+      },
+      "liquidity": {
+        "usd": 639442.02,
+        "base": 22696583997,
+        "quote": 117.3178
+      },
+      "fdv": 1676667,
+      "marketCap": 1676667,
+      "pairCreatedAt": 1769824137000,
+      "info": {
+        "imageUrl": "https://cdn.dexscreener.com/cms/images/8b061fc9847e13a3754e1d37c78c25ae1feb97f01c8b5e47c478d6bc81d650ab?width=800&height=800&quality=90",
+        "header": "https://cdn.dexscreener.com/cms/images/939c59c3f6f6e54ef2deb6c3297622870e24a77fdcb4774b18f9c1ca6bd27edc?width=1500&height=500&quality=90",
+        "openGraph": "https://cdn.dexscreener.com/token-images/og/base/0xb9c701a8cd4d4c1079664ba2daedd9f065cdfb07?timestamp=1770149100000",
+        "websites": [
+          {
+            "url": "https://moltx.io/",
+            "label": "Website"
+          }
+        ],
+        "socials": [
+          {
+            "url": "https://x.com/sowmay_jain/status/2017360053691683258",
+            "type": "twitter"
+          }
+        ]
+      }
+    },
+    {
+      "chainId": "base",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/base/0x0d64a8e0d28626511cc23fc75b81c2f03e222b14f9b944b60eecc3f4ddabeddc",
+      "pairAddress": "0x0d64a8e0d28626511cc23fc75b81c2f03e222b14f9b944b60eecc3f4ddabeddc",
+      "labels": [
+        "v4"
+      ],
+      "baseToken": {
+        "address": "0x587Cd533F418825521f3A1daa7CCd1E7339A1B07",
+        "name": "StarkBot",
+        "symbol": "STARKBOT"
+      },
+      "quoteToken": {
+        "address": "0x4200000000000000000000000000000000000006",
+        "name": "Wrapped Ether",
+        "symbol": "WETH"
+      },
+      "priceNative": "0.00000001082",
+      "priceUsd": "0.00002389",
+      "txns": {
+        "m5": {
+          "buys": 6,
+          "sells": 34
+        },
+        "h1": {
+          "buys": 89,
+          "sells": 301
+        },
+        "h6": {
+          "buys": 729,
+          "sells": 1846
+        },
+        "h24": {
+          "buys": 2947,
+          "sells": 7030
+        }
+      },
+      "volume": {
+        "h24": 2148582.38,
+        "h6": 606857.93,
+        "h1": 108267.19,
+        "m5": 9314.04
+      },
+      "priceChange": {
+        "m5": -6.23,
+        "h1": 46.29,
+        "h6": -6.43,
+        "h24": 26.38
+      },
+      "liquidity": {
+        "usd": 740165.13,
+        "base": 18206161616,
+        "quote": 138.2351
+      },
+      "fdv": 2389901,
+      "marketCap": 2389901,
+      "pairCreatedAt": 1769625055000,
+      "info": {
+        "imageUrl": "https://cdn.dexscreener.com/cms/images/1b17ae1da424a41ee1ebae5fcb765bd4b9d2542411682cd19642d8e7ad185081?width=800&height=800&quality=90",
+        "header": "https://cdn.dexscreener.com/cms/images/b7b6f259ff0688d9505956e10015e6cf7c2ab239c350fc7fbfa7f77a7054ce02?width=1500&height=500&quality=90",
+        "openGraph": "https://cdn.dexscreener.com/token-images/og/base/0x587cd533f418825521f3a1daa7ccd1e7339a1b07?timestamp=1770149100000",
+        "websites": [
+          {
+            "url": "https://starkbot.ai",
+            "label": "Website"
+          },
+          {
+            "url": "https://www.starkbot.ai/docs",
+            "label": "Docs"
+          },
+          {
+            "url": "https://github.com/ethereumdegen/stark-bot",
+            "label": "GitHub"
+          }
+        ],
+        "socials": [
+          {
+            "url": "https://x.com/ethereumdegen?s=21",
+            "type": "twitter"
+          },
+          {
+            "url": "https://discord.com/invite/V26YeqBfXc",
+            "type": "discord"
+          }
+        ]
+      }
+    },
+    {
+      "chainId": "base",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/base/0x8db50600219d828a57c666ad055e9e41cdbbe40f",
+      "pairAddress": "0x8DB50600219d828A57c666ad055E9e41CdbBe40f",
+      "labels": [
+        "v3"
+      ],
+      "baseToken": {
+        "address": "0xa1F72459dfA10BAD200Ac160eCd78C6b77a747be",
+        "name": "CLAWNCH",
+        "symbol": "CLAWNCH"
+      },
+      "quoteToken": {
+        "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "name": "USD Coin",
+        "symbol": "USDC"
+      },
+      "priceNative": "0.00009969",
+      "priceUsd": "0.00009969",
+      "txns": {
+        "m5": {
+          "buys": 14,
+          "sells": 15
+        },
+        "h1": {
+          "buys": 276,
+          "sells": 217
+        },
+        "h6": {
+          "buys": 2642,
+          "sells": 1860
+        },
+        "h24": {
+          "buys": 8734,
+          "sells": 7070
+        }
+      },
+      "volume": {
+        "h24": 2241534.46,
+        "h6": 639428.76,
+        "h1": 75346.06,
+        "m5": 3162.7
+      },
+      "priceChange": {
+        "m5": 2.85,
+        "h1": 8.69,
+        "h6": -32.79,
+        "h24": -36.72
+      },
+      "liquidity": {
+        "usd": 60498.67,
+        "base": 327824428,
+        "quote": 27817
+      },
+      "fdv": 9957506,
+      "marketCap": 9957506,
+      "pairCreatedAt": 1769854479000,
+      "info": {
+        "imageUrl": "https://cdn.dexscreener.com/cms/images/10a69979845ab081f7a37fcaba5e2eb772cd5fe2fa92f7920209e7bb8225997c?width=800&height=800&quality=90",
+        "header": "https://cdn.dexscreener.com/cms/images/10ccb671c39ace2810e58d1d269678c9dc78d04d4d9d0c266ef14645345dabc0?width=1500&height=500&quality=90",
+        "openGraph": "https://cdn.dexscreener.com/token-images/og/base/0xa1f72459dfa10bad200ac160ecd78c6b77a747be?timestamp=1770149100000",
+        "websites": [
+          {
+            "url": "https://clawn.ch",
+            "label": "Website"
+          },
+          {
+            "url": "https://clawn.ch/skill.md",
+            "label": "Docs"
+          }
+        ],
+        "socials": [
+          {
+            "url": "https://x.com/i/communities/2017458104024068470",
+            "type": "twitter"
+          }
+        ]
+      }
+    },
+    {
+      "chainId": "base",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/base/0x0ed19a9c157d2f3385514e4fefcd7134bf9af02e",
+      "pairAddress": "0x0ED19a9c157d2F3385514E4FefCd7134bF9AF02E",
+      "labels": [
+        "v3"
+      ],
+      "baseToken": {
+        "address": "0xB695559b26BB2c9703ef1935c37AeaE9526bab07",
+        "name": "Moltbook",
+        "symbol": "MOLT"
+      },
+      "quoteToken": {
+        "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "name": "USD Coin",
+        "symbol": "USDC"
+      },
+      "priceNative": "0.0002720",
+      "priceUsd": "0.0002720",
+      "txns": {
+        "m5": {
+          "buys": 18,
+          "sells": 9
+        },
+        "h1": {
+          "buys": 265,
+          "sells": 259
+        },
+        "h6": {
+          "buys": 2644,
+          "sells": 2076
+        },
+        "h24": {
+          "buys": 8212,
+          "sells": 6376
+        }
+      },
+      "volume": {
+        "h24": 2011988.97,
+        "h6": 555096.57,
+        "h1": 55471.78,
+        "m5": 2768.52
+      },
+      "priceChange": {
+        "m5": -1.86,
+        "h1": 18.82,
+        "h6": -21.61,
+        "h24": -25.08
+      },
+      "liquidity": {
+        "usd": 53577.63,
+        "base": 61442017,
+        "quote": 36859
+      },
+      "fdv": 27209692,
+      "marketCap": 27209692,
+      "pairCreatedAt": 1769822863000,
+      "info": {
+        "imageUrl": "https://cdn.dexscreener.com/cms/images/09d504dd6c2e0a087c678f04feb1dfa8e0c229237965cded3d3b15de924d3c54?width=800&height=800&quality=90",
+        "header": "https://cdn.dexscreener.com/cms/images/4a6764c840da53192b7de37683a786e2f6d5bd3f60e4e69e5a24c6dc8f3f6bff?width=1500&height=500&quality=90",
+        "openGraph": "https://cdn.dexscreener.com/token-images/og/base/0xb695559b26bb2c9703ef1935c37aeae9526bab07?timestamp=1770149100000",
+        "websites": [
+          {
+            "url": "https://www.moltbook.com/",
+            "label": "Website"
+          },
+          {
+            "url": "https://basescan.org/tx/0x592835d5d221911b2a79ad947df8b22723626e627cc9a27abc03edb1828ebd22",
+            "label": "First claim from Moltbook"
+          },
+          {
+            "url": "https://basescan.org/address/0xfc72b05ff4970b5744f29884f6d361be2ae0b9db",
+            "label": "Moltbook wallet"
+          }
+        ],
+        "socials": [
+          {
+            "url": "https://x.com/MattPRD/status/2016560277333168540?",
+            "type": "twitter"
+          }
+        ]
+      }
+    },
+    {
+      "chainId": "base",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/base/0x07da9c5d35028f578dfac5be6e5aaa8a835704f6",
+      "pairAddress": "0x07Da9c5d35028f578dFac5BE6e5Aaa8a835704F6",
+      "labels": [
+        "v3"
+      ],
+      "baseToken": {
+        "address": "0xa1F72459dfA10BAD200Ac160eCd78C6b77a747be",
+        "name": "CLAWNCH",
+        "symbol": "CLAWNCH"
+      },
+      "quoteToken": {
+        "address": "0x4200000000000000000000000000000000000006",
+        "name": "Wrapped Ether",
+        "symbol": "WETH"
+      },
+      "priceNative": "0.00000004473",
+      "priceUsd": "0.00009853",
+      "txns": {
+        "m5": {
+          "buys": 14,
+          "sells": 1
+        },
+        "h1": {
+          "buys": 129,
+          "sells": 63
+        },
+        "h6": {
+          "buys": 983,
+          "sells": 656
+        },
+        "h24": {
+          "buys": 3209,
+          "sells": 2178
+        }
+      },
+      "volume": {
+        "h24": 3364200.22,
+        "h6": 926992.6,
+        "h1": 115877.96,
+        "m5": 3183.62
+      },
+      "priceChange": {
+        "m5": 2.1,
+        "h1": 6.91,
+        "h6": -33.81,
+        "h24": -37.92
+      },
+      "liquidity": {
+        "usd": 256254.86,
+        "base": 1356533442,
+        "quote": 55.6546
+      },
+      "fdv": 9841579,
+      "marketCap": 9841579,
+      "pairCreatedAt": 1769829809000,
+      "info": {
+        "imageUrl": "https://cdn.dexscreener.com/cms/images/10a69979845ab081f7a37fcaba5e2eb772cd5fe2fa92f7920209e7bb8225997c?width=800&height=800&quality=90",
+        "header": "https://cdn.dexscreener.com/cms/images/10ccb671c39ace2810e58d1d269678c9dc78d04d4d9d0c266ef14645345dabc0?width=1500&height=500&quality=90",
+        "openGraph": "https://cdn.dexscreener.com/token-images/og/base/0xa1f72459dfa10bad200ac160ecd78c6b77a747be?timestamp=1770149100000",
+        "websites": [
+          {
+            "url": "https://clawn.ch",
+            "label": "Website"
+          },
+          {
+            "url": "https://clawn.ch/skill.md",
+            "label": "Docs"
+          }
+        ],
+        "socials": [
+          {
+            "url": "https://x.com/i/communities/2017458104024068470",
+            "type": "twitter"
+          }
+        ]
+      }
+    },
+    {
+      "chainId": "base",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/base/0x6f3a1b2054d091b5c14ea8c720142c9ebc4387c1",
+      "pairAddress": "0x6F3a1B2054d091b5C14EA8c720142c9EBC4387C1",
+      "labels": [
+        "v3"
+      ],
+      "baseToken": {
+        "address": "0xB695559b26BB2c9703ef1935c37AeaE9526bab07",
+        "name": "Moltbook",
+        "symbol": "MOLT"
+      },
+      "quoteToken": {
+        "address": "0x4200000000000000000000000000000000000006",
+        "name": "Wrapped Ether",
+        "symbol": "WETH"
+      },
+      "priceNative": "0.0000001237",
+      "priceUsd": "0.0002730",
+      "txns": {
+        "m5": {
+          "buys": 5,
+          "sells": 3
+        },
+        "h1": {
+          "buys": 105,
+          "sells": 65
+        },
+        "h6": {
+          "buys": 1033,
+          "sells": 656
+        },
+        "h24": {
+          "buys": 2929,
+          "sells": 1970
+        }
+      },
+      "volume": {
+        "h24": 5116701.08,
+        "h6": 1877993.33,
+        "h1": 227276.95,
+        "m5": 4963.51
+      },
+      "priceChange": {
+        "m5": -1.04,
+        "h1": 18.86,
+        "h6": -21.91,
+        "h24": -25.25
+      },
+      "liquidity": {
+        "usd": 611453.89,
+        "base": 1730557809,
+        "quote": 62.9834
+      },
+      "fdv": 27301182,
+      "marketCap": 27301182,
+      "pairCreatedAt": 1769634731000,
+      "info": {
+        "imageUrl": "https://cdn.dexscreener.com/cms/images/09d504dd6c2e0a087c678f04feb1dfa8e0c229237965cded3d3b15de924d3c54?width=800&height=800&quality=90",
+        "header": "https://cdn.dexscreener.com/cms/images/4a6764c840da53192b7de37683a786e2f6d5bd3f60e4e69e5a24c6dc8f3f6bff?width=1500&height=500&quality=90",
+        "openGraph": "https://cdn.dexscreener.com/token-images/og/base/0xb695559b26bb2c9703ef1935c37aeae9526bab07?timestamp=1770149100000",
+        "websites": [
+          {
+            "url": "https://www.moltbook.com/",
+            "label": "Website"
+          },
+          {
+            "url": "https://basescan.org/tx/0x592835d5d221911b2a79ad947df8b22723626e627cc9a27abc03edb1828ebd22",
+            "label": "First claim from Moltbook"
+          },
+          {
+            "url": "https://basescan.org/address/0xfc72b05ff4970b5744f29884f6d361be2ae0b9db",
+            "label": "Moltbook wallet"
+          }
+        ],
+        "socials": [
+          {
+            "url": "https://x.com/MattPRD/status/2016560277333168540?",
+            "type": "twitter"
+          }
+        ]
+      }
+    },
+    {
+      "chainId": "base",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/base/0x852ae1da9ec34848c0b1531e0a6c4e0c141c30f5",
+      "pairAddress": "0x852aE1DA9ec34848C0b1531e0a6C4E0c141c30f5",
+      "labels": [
+        "v3"
+      ],
+      "baseToken": {
+        "address": "0xB695559b26BB2c9703ef1935c37AeaE9526bab07",
+        "name": "Moltbook",
+        "symbol": "MOLT"
+      },
+      "quoteToken": {
+        "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "name": "USD Coin",
+        "symbol": "USDC"
+      },
+      "priceNative": "0.0002726",
+      "priceUsd": "0.0002726",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 5
+        },
+        "h1": {
+          "buys": 100,
+          "sells": 81
+        },
+        "h6": {
+          "buys": 843,
+          "sells": 604
+        },
+        "h24": {
+          "buys": 2392,
+          "sells": 1672
+        }
+      },
+      "volume": {
+        "h24": 2533315.87,
+        "h6": 994552.09,
+        "h1": 140029.64,
+        "m5": 1799.82
+      },
+      "priceChange": {
+        "m5": -0.98,
+        "h1": 18.99,
+        "h6": -21.79,
+        "h24": -25.46
+      },
+      "liquidity": {
+        "usd": 358631.09,
+        "base": 477140895,
+        "quote": 228528
+      },
+      "fdv": 27267185,
+      "marketCap": 27267185,
+      "pairCreatedAt": 1769743593000,
+      "info": {
+        "imageUrl": "https://cdn.dexscreener.com/cms/images/09d504dd6c2e0a087c678f04feb1dfa8e0c229237965cded3d3b15de924d3c54?width=800&height=800&quality=90",
+        "header": "https://cdn.dexscreener.com/cms/images/4a6764c840da53192b7de37683a786e2f6d5bd3f60e4e69e5a24c6dc8f3f6bff?width=1500&height=500&quality=90",
+        "openGraph": "https://cdn.dexscreener.com/token-images/og/base/0xb695559b26bb2c9703ef1935c37aeae9526bab07?timestamp=1770149100000",
+        "websites": [
+          {
+            "url": "https://www.moltbook.com/",
+            "label": "Website"
+          },
+          {
+            "url": "https://basescan.org/tx/0x592835d5d221911b2a79ad947df8b22723626e627cc9a27abc03edb1828ebd22",
+            "label": "First claim from Moltbook"
+          },
+          {
+            "url": "https://basescan.org/address/0xfc72b05ff4970b5744f29884f6d361be2ae0b9db",
+            "label": "Moltbook wallet"
+          }
+        ],
+        "socials": [
+          {
+            "url": "https://x.com/MattPRD/status/2016560277333168540?",
+            "type": "twitter"
+          }
+        ]
+      }
+    },
+    {
+      "chainId": "base",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/base/0xacea0e7fa7381b429ac3475e5a8405cf5db2c215",
+      "pairAddress": "0xAcEA0E7Fa7381b429aC3475e5a8405cf5DB2C215",
+      "labels": [
+        "v3"
+      ],
+      "baseToken": {
+        "address": "0xa1F72459dfA10BAD200Ac160eCd78C6b77a747be",
+        "name": "CLAWNCH",
+        "symbol": "CLAWNCH"
+      },
+      "quoteToken": {
+        "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "name": "USD Coin",
+        "symbol": "USDC"
+      },
+      "priceNative": "0.00009873",
+      "priceUsd": "0.00009873",
+      "txns": {
+        "m5": {
+          "buys": 9,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 115,
+          "sells": 43
+        },
+        "h6": {
+          "buys": 806,
+          "sells": 524
+        },
+        "h24": {
+          "buys": 2509,
+          "sells": 1741
+        }
+      },
+      "volume": {
+        "h24": 1490553.43,
+        "h6": 545515.96,
+        "h1": 70541.45,
+        "m5": 1170.53
+      },
+      "priceChange": {
+        "m5": 1.43,
+        "h1": 8.48,
+        "h6": -33.52,
+        "h24": -37.73
+      },
+      "liquidity": {
+        "usd": 144271.02,
+        "base": 890983127,
+        "quote": 56297
+      },
+      "fdv": 9862205,
+      "marketCap": 9862205,
+      "pairCreatedAt": 1769893483000,
+      "info": {
+        "imageUrl": "https://cdn.dexscreener.com/cms/images/10a69979845ab081f7a37fcaba5e2eb772cd5fe2fa92f7920209e7bb8225997c?width=800&height=800&quality=90",
+        "header": "https://cdn.dexscreener.com/cms/images/10ccb671c39ace2810e58d1d269678c9dc78d04d4d9d0c266ef14645345dabc0?width=1500&height=500&quality=90",
+        "openGraph": "https://cdn.dexscreener.com/token-images/og/base/0xa1f72459dfa10bad200ac160ecd78c6b77a747be?timestamp=1770149100000",
+        "websites": [
+          {
+            "url": "https://clawn.ch",
+            "label": "Website"
+          },
+          {
+            "url": "https://clawn.ch/skill.md",
+            "label": "Docs"
+          }
+        ],
+        "socials": [
+          {
+            "url": "https://x.com/i/communities/2017458104024068470",
+            "type": "twitter"
+          }
+        ]
+      }
+    }
+  ]
+}
