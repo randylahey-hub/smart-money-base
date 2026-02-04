@@ -1,0 +1,20 @@
+# fly.toml - Smart Money Alert Bot
+
+app = 'smart-money-base'
+primary_region = 'ams'
+
+[build]
+  builder = 'paketobuildpacks/builder:base'
+
+[env]
+  PYTHONUNBUFFERED = "1"
+
+# Worker process - no HTTP ports needed
+[processes]
+  worker = "python scripts/wallet_monitor.py"
+
+# No HTTP service since this is a background worker
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 256
