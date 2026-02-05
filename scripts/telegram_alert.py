@@ -170,8 +170,8 @@ def send_smart_money_alert(
 ⏰ <b>Tespit Zamanı:</b> {first_buy_time}
 
 🔗 <b>Linkler:</b>
-• <a href="https://basescan.org/token/{token_address}">BaseScan</a>
 • <a href="https://dexscreener.com/base/{token_address}">DEXScreener</a>
+• <a href="https://basescan.org/token/{token_address}">BaseScan</a>
 • <a href="https://www.dextools.io/app/en/base/pair-explorer/{token_address}">DexTools</a>
 
 ⚡️ <b>{wallet_count} smart money cüzdanı 20 saniye içinde aynı tokeni aldı!</b>

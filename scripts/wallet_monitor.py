@@ -33,6 +33,13 @@ from scripts.telegram_alert import (
     send_error_alert,
     get_token_info_dexscreener
 )
+from scripts.early_detector import (
+    process_alert_for_early_detection,
+    get_smartest_wallet_addresses,
+    is_smartest_wallet
+)
+from scripts.virtual_trader import get_trader
+from scripts.daily_report import check_and_send_if_time
 
 # Flush için
 sys.stdout.reconfigure(line_buffering=True)
@@ -209,6 +216,19 @@ class SmartMoneyMonitor:
 
             print(f"📥 Alım: {to_address[:10]}... → {token_symbol} | {eth_amount:.3f} ETH | MCap: ${current_mcap/1e6:.2f}M")
 
+            # === SMARTEST WALLET CHECK - Senaryo 2 ===
+            try:
+                if is_smartest_wallet(to_address):
+                    print(f"🧠 SMARTEST WALLET alım yaptı: {to_address[:10]}... → {token_symbol}")
+                    trader = get_trader()
+                    trader.buy_token_scenario2(
+                        token_address=token_address,
+                        token_symbol=token_symbol,
+                        entry_mcap=current_mcap
+                    )
+            except Exception as e:
+                print(f"⚠️ Virtual trade S2 hatası: {e}")
+
             # Eski alımları temizle
             self._clean_old_purchases()
 
@@ -258,6 +278,30 @@ class SmartMoneyMonitor:
             if success:
                 self.last_alerts[token_address] = time.time()
                 print(f"✅ Alert gönderildi: {token_info.get('symbol', token_address[:10])}")
+
+                # === EARLY DETECTION ===
+                try:
+                    process_alert_for_early_detection(
+                        token_address=token_address,
+                        token_symbol=token_info.get('symbol', 'UNKNOWN'),
+                        smart_money_purchases=wallet_purchases,
+                        smart_money_wallets=self.wallets_set,
+                        current_block=self.w3.eth.block_number
+                    )
+                except Exception as e:
+                    print(f"⚠️ Early detection hatası: {e}")
+
+                # === VIRTUAL TRADING - Senaryo 1 ===
+                try:
+                    trader = get_trader()
+                    current_mcap = token_info.get('mcap', 0)
+                    trader.buy_token_scenario1(
+                        token_address=token_address,
+                        token_symbol=token_info.get('symbol', 'UNKNOWN'),
+                        entry_mcap=current_mcap
+                    )
+                except Exception as e:
+                    print(f"⚠️ Virtual trade S1 hatası: {e}")
             else:
                 print(f"❌ Alert gönderilemedi!")
 
@@ -275,10 +319,12 @@ class SmartMoneyMonitor:
 
         # Başlangıç bildirimi
         send_status_update(
-            f"🟢 Monitor başlatıldı!\n"
+            f"🟢 Monitor v2.0 başlatıldı!\n"
             f"• {len(self.wallets)} cüzdan izleniyor\n"
             f"• Alert eşiği: {ALERT_THRESHOLD} cüzdan / {TIME_WINDOW}sn\n"
-            f"• Max MCap: ${MAX_MCAP/1e6:.0f}M"
+            f"• Max MCap: ${MAX_MCAP/1e6:.0f}M\n"
+            f"• Virtual Trading: Aktif (0.5 ETH)\n"
+            f"• Daily Report: 23:30"
         )
 
         # HTTP polling ile izleme
@@ -310,6 +356,12 @@ class SmartMoneyMonitor:
                     # Her 50 blokta bir durum yazdır
                     if block_count % 50 == 0:
                         print(f"📊 {block_count} blok işlendi | {transfer_count} smart money transfer")
+
+                        # Günlük rapor kontrolü (23:30)
+                        try:
+                            check_and_send_if_time()
+                        except Exception as e:
+                            print(f"⚠️ Daily report hatası: {e}")
 
                     last_block = current_block
 
