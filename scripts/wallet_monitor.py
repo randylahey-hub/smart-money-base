@@ -21,6 +21,7 @@ from config.settings import (
     ALERT_THRESHOLD,
     TIME_WINDOW,
     ALERT_COOLDOWN,
+    MAX_MCAP,
     WETH_ADDRESS,
     TRANSFER_EVENT_SIGNATURE,
     EXCLUDED_TOKENS,
@@ -196,6 +197,11 @@ class SmartMoneyMonitor:
             eth_amount = self._estimate_eth_from_transfer(log)
             current_mcap = token_info.get('mcap', 0)
 
+            # Market cap filtresi - MAX_MCAP üstündeki tokenlar alert dışı
+            if current_mcap > MAX_MCAP:
+                print(f"⏭️  Skip: {token_symbol} | MCap: ${current_mcap/1e6:.2f}M > ${MAX_MCAP/1e6:.0f}M limit")
+                return
+
             # Alımı kaydet: (wallet, eth_amount, mcap, timestamp)
             self.token_purchases[token_address].append(
                 (to_address, eth_amount, current_mcap, current_time)
@@ -263,6 +269,7 @@ class SmartMoneyMonitor:
         print(f"📊 İzlenen cüzdan sayısı: {len(self.wallets)}")
         print(f"⏱️  Zaman penceresi: {TIME_WINDOW} saniye")
         print(f"🎯 Alert eşiği: {ALERT_THRESHOLD} cüzdan")
+        print(f"💰 Max MCap: ${MAX_MCAP/1e6:.0f}M")
         print(f"⏳ Alert cooldown: {ALERT_COOLDOWN} saniye")
         print("=" * 60 + "\n")
 
@@ -270,7 +277,8 @@ class SmartMoneyMonitor:
         send_status_update(
             f"🟢 Monitor başlatıldı!\n"
             f"• {len(self.wallets)} cüzdan izleniyor\n"
-            f"• Alert eşiği: {ALERT_THRESHOLD} cüzdan / {TIME_WINDOW}sn"
+            f"• Alert eşiği: {ALERT_THRESHOLD} cüzdan / {TIME_WINDOW}sn\n"
+            f"• Max MCap: ${MAX_MCAP/1e6:.0f}M"
         )
 
         # HTTP polling ile izleme
