@@ -78,8 +78,15 @@ class SmartMoneyMonitor:
                     return [w['address'] for w in data]
 
             elif isinstance(data, dict):
+                # wallets key'i varsa (smart_money_final.json formatı)
+                if 'wallets' in data:
+                    wallets = data['wallets']
+                    if isinstance(wallets[0], str):
+                        return wallets
+                    elif isinstance(wallets[0], dict):
+                        return [w['address'] for w in wallets]
                 # profitable veya all key'i varsa
-                if 'profitable' in data:
+                elif 'profitable' in data:
                     return [w['address'] for w in data['profitable']]
                 elif 'all' in data:
                     return [w['address'] for w in data['all'] if w.get('is_profitable', False)]
