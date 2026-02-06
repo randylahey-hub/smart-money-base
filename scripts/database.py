@@ -58,7 +58,8 @@ def init_db():
             "virtual_portfolio",
             "smartest_wallets",
             "early_smart_money",
-            "fake_alerts"
+            "fake_alerts",
+            "real_portfolio"
         ]
 
         for table in tables:
@@ -211,6 +212,24 @@ def save_fake_alerts_db(data: dict) -> bool:
     if not is_db_available():
         return False
     return _save_to_db("fake_alerts", data)
+
+
+# =============================================================================
+# REAL PORTFOLIO
+# =============================================================================
+
+def load_real_portfolio_db() -> dict:
+    """Gerçek trading portföyünü DB'den yükle."""
+    if not is_db_available():
+        return None
+    return _load_from_db("real_portfolio")
+
+
+def save_real_portfolio_db(data: dict) -> bool:
+    """Gerçek trading portföyünü DB'ye kaydet."""
+    if not is_db_available():
+        return False
+    return _save_to_db("real_portfolio", data)
 
 
 # =============================================================================

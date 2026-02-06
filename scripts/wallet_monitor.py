@@ -47,6 +47,7 @@ from scripts.virtual_trader import get_trader
 from scripts.daily_report import check_and_send_if_time
 from scripts.fake_alert_tracker import record_fake_alert, is_flagged_wallet
 from scripts.database import init_db, is_db_available
+from config.settings import REAL_TRADING_ENABLED
 
 # Flush için
 sys.stdout.reconfigure(line_buffering=True)
@@ -302,6 +303,19 @@ class SmartMoneyMonitor:
             except Exception as e:
                 print(f"⚠️ Virtual trade S2 hatası: {e}")
 
+            # === REAL TRADING - Senaryo 2 (Smartest Wallet) ===
+            try:
+                if REAL_TRADING_ENABLED and is_smartest_wallet(to_address):
+                    from scripts.real_trader import get_real_trader
+                    real_trader = get_real_trader()
+                    real_trader.buy_token(
+                        token_address=token_address,
+                        token_symbol=token_symbol,
+                        entry_mcap=current_mcap
+                    )
+            except Exception as e:
+                print(f"⚠️ Real trade S2 hatası: {e}")
+
             # Eski alımları temizle
             self._clean_old_purchases()
 
@@ -424,6 +438,20 @@ class SmartMoneyMonitor:
                     )
                 except Exception as e:
                     print(f"⚠️ Virtual trade S1 hatası: {e}")
+
+                # === REAL TRADING - Senaryo 1 (Smart Money Alert) ===
+                try:
+                    if REAL_TRADING_ENABLED:
+                        from scripts.real_trader import get_real_trader
+                        real_trader = get_real_trader()
+                        real_trader.buy_token(
+                            token_address=token_address,
+                            token_symbol=token_info.get('symbol', 'UNKNOWN'),
+                            entry_mcap=current_mcap
+                        )
+                except Exception as e:
+                    print(f"⚠️ Real trade S1 hatası: {e}")
+                    send_error_alert(f"Real trade S1 failed: {e}")
             else:
                 print(f"❌ Alert gönderilemedi!")
 
@@ -442,7 +470,20 @@ class SmartMoneyMonitor:
         print(f"🛡️  Min Alım: ${MIN_BUY_VALUE_USD}")
         print(f"🔥 Bullish Pencere: {BULLISH_WINDOW}sn")
         print(f"⏳ Alert cooldown: {ALERT_COOLDOWN} saniye")
+        print(f"💎 Real Trading: {'AKTİF' if REAL_TRADING_ENABLED else 'KAPALI'}")
         print("=" * 60 + "\n")
+
+        # Real trading durumu
+        real_trading_status = "KAPALI"
+        if REAL_TRADING_ENABLED:
+            try:
+                from scripts.real_trader import get_real_trader
+                from scripts.real_trade_config import REAL_TRADE_SIZE_ETH, MAX_OPEN_POSITIONS
+                rt = get_real_trader()
+                real_trading_status = f"AKTİF ({REAL_TRADE_SIZE_ETH} ETH/trade, max {MAX_OPEN_POSITIONS} pozisyon)"
+            except Exception as e:
+                real_trading_status = f"HATA: {e}"
+                print(f"⚠️ Real trader başlatılamadı: {e}")
 
         # Başlangıç bildirimi
         send_status_update(
@@ -456,11 +497,23 @@ class SmartMoneyMonitor:
             f"• Airdrop Filtresi: Aktif (${MIN_BUY_VALUE_USD}+ alım)\n"
             f"• Bullish Alert: {BULLISH_WINDOW//60}dk pencere\n"
             f"• Virtual Trading: Aktif (0.5 ETH)\n"
+            f"• 💎 Real Trading: {real_trading_status}\n"
             f"• Daily Report: 23:30"
         )
 
-        # HTTP polling ile izleme
-        await self._poll_transfers()
+        # Async tasks: polling + (opsiyonel) position monitor
+        tasks = [self._poll_transfers()]
+
+        if REAL_TRADING_ENABLED:
+            try:
+                from scripts.real_trader import get_real_trader
+                real_trader = get_real_trader()
+                tasks.append(real_trader.monitor_positions())
+                print("📊 Real trading pozisyon monitörü başlatıldı")
+            except Exception as e:
+                print(f"⚠️ Pozisyon monitörü başlatılamadı: {e}")
+
+        await asyncio.gather(*tasks)
 
     async def _poll_transfers(self):
         """

@@ -101,3 +101,12 @@ SWAP_EVENT_SIGNATURE = "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e
 
 # Transfer event: Transfer(address,address,uint256)
 TRANSFER_EVENT_SIGNATURE = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+
+# =============================================================================
+# GERÇEK TRADİNG AYARLARI
+# =============================================================================
+# Trading cüzdanı private key'i (Koyeb env variable olarak saklanır, ASLA kodda tutma!)
+TRADING_PRIVATE_KEY = os.getenv("TRADING_PRIVATE_KEY", "")
+
+# Gerçek trading açık/kapalı (kill switch)
+REAL_TRADING_ENABLED = os.getenv("REAL_TRADING_ENABLED", "false").lower() == "true"
