@@ -12,6 +12,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.telegram_alert import send_telegram_message
 from scripts.virtual_trader import get_trader
 from scripts.early_detector import load_smartest_wallets, SMARTEST_TARGET
+from scripts.data_cleanup import run_full_cleanup
+from scripts.fake_alert_tracker import load_fake_alerts
 
 # Rapor saati (Türkiye saati UTC+3)
 REPORT_HOUR = 23
@@ -47,6 +49,11 @@ def generate_daily_report() -> str:
     # Smartest wallets durumu
     smartest = load_smartest_wallets()
     smartest_count = smartest.get("current_count", 0)
+
+    # Fake alert durumu
+    fake_data = load_fake_alerts()
+    fake_flagged_count = len(fake_data.get("flagged_wallets", []))
+    fake_total_alerts = len(fake_data.get("alerts_log", []))
 
     # Win rate hesapla
     s1_total_trades = s1["wins"] + s1["losses"]
@@ -86,6 +93,7 @@ def generate_daily_report() -> str:
 ━━━━━━━━━━━━━━━━━━━━
 
 🧠 <b>Smartest Wallets:</b> {smartest_count}/{SMARTEST_TARGET} bulundu
+🚩 <b>Fake Alert:</b> {fake_total_alerts} tespit | {fake_flagged_count} cüzdan flagli
 """
 
     return report.strip()
@@ -107,6 +115,12 @@ def send_daily_report() -> bool:
         print("✅ Günlük rapor gönderildi!")
     else:
         print("❌ Rapor gönderilemedi!")
+
+    # Veri temizleme (her gun rapor sonrasi)
+    try:
+        run_full_cleanup()
+    except Exception as e:
+        print(f"⚠️ Cleanup hatası: {e}")
 
     return success
 

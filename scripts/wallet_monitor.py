@@ -22,6 +22,7 @@ from config.settings import (
     TIME_WINDOW,
     ALERT_COOLDOWN,
     MAX_MCAP,
+    MIN_VOLUME_24H,
     WETH_ADDRESS,
     TRANSFER_EVENT_SIGNATURE,
     EXCLUDED_TOKENS,
@@ -40,6 +41,7 @@ from scripts.early_detector import (
 )
 from scripts.virtual_trader import get_trader
 from scripts.daily_report import check_and_send_if_time
+from scripts.fake_alert_tracker import record_fake_alert, is_flagged_wallet
 
 # Flush için
 sys.stdout.reconfigure(line_buffering=True)
@@ -260,6 +262,22 @@ class SmartMoneyMonitor:
             # Token bilgisi al
             token_info = get_token_info_dexscreener(token_address)
 
+            # === HACIM KONTROLU ===
+            volume_24h = token_info.get('volume_24h', 0)
+            if volume_24h < MIN_VOLUME_24H:
+                print(f"⚠️  FAKE ALERT: {token_info.get('symbol', 'UNKNOWN')} | 24s Hacim: ${volume_24h:.0f} < ${MIN_VOLUME_24H} minimum")
+                # Fake alert'teki cuzdanlari flagle
+                wallet_list = [p[0] for p in unique_wallets.values()]
+                record_fake_alert(
+                    wallet_addresses=wallet_list,
+                    token_address=token_address,
+                    token_symbol=token_info.get('symbol', 'UNKNOWN'),
+                    volume_24h=volume_24h
+                )
+                # Bu token icin tracking'i temizle (tekrar alert gondermesin)
+                self.token_purchases.pop(token_address, None)
+                return
+
             # wallet_purchases formatı: [(wallet, eth_amount, buy_mcap), ...]
             wallet_purchases = [
                 (p[0], p[1], p[2])  # wallet, eth_amount, mcap
@@ -314,6 +332,7 @@ class SmartMoneyMonitor:
         print(f"⏱️  Zaman penceresi: {TIME_WINDOW} saniye")
         print(f"🎯 Alert eşiği: {ALERT_THRESHOLD} cüzdan")
         print(f"💰 Max MCap: ${MAX_MCAP/1e6:.0f}M")
+        print(f"📊 Min Hacim: ${MIN_VOLUME_24H:,}")
         print(f"⏳ Alert cooldown: {ALERT_COOLDOWN} saniye")
         print("=" * 60 + "\n")
 
@@ -323,6 +342,7 @@ class SmartMoneyMonitor:
             f"• {len(self.wallets)} cüzdan izleniyor\n"
             f"• Alert eşiği: {ALERT_THRESHOLD} cüzdan / {TIME_WINDOW}sn\n"
             f"• Max MCap: ${MAX_MCAP/1e6:.0f}M\n"
+            f"• Min Hacim: ${MIN_VOLUME_24H:,}\n"
             f"• Virtual Trading: Aktif (0.5 ETH)\n"
             f"• Daily Report: 23:30"
         )

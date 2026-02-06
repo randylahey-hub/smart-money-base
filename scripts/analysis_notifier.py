@@ -1,6 +1,6 @@
 """
 ETH P&L Analizi İlerleme Bildirici
-Her 15 dakikada bir Telegram'a analiz durumunu gönderir.
+Her 30 dakikada bir Telegram'a analiz durumunu gönderir.
 """
 
 import os
@@ -115,11 +115,11 @@ def send_progress_update():
     return success
 
 def main():
-    """Ana döngü - 15 dakikada bir bildirim gönder."""
+    """Ana döngü - 30 dakikada bir bildirim gönder."""
     print("=" * 50)
     print("📢 ETH Analizi Bildirim Servisi Başlatıldı")
     print("=" * 50)
-    print(f"⏱️ Bildirim aralığı: 15 dakika")
+    print(f"⏱️ Bildirim aralığı: 30 dakika")
     print(f"📂 Log dosyası: {LOG_FILE}")
     print("=" * 50 + "\n")
 
@@ -127,8 +127,8 @@ def main():
     print("📤 İlk bildirim gönderiliyor...")
     send_progress_update()
 
-    # Her 15 dakikada bir bildirim gönder
-    interval = 15 * 60  # 15 dakika (saniye)
+    # Her 30 dakikada bir bildirim gönder
+    interval = 30 * 60  # 30 dakika (saniye)
 
     while True:
         try:

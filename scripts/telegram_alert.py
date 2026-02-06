@@ -73,6 +73,9 @@ def get_token_info_dexscreener(token_address: str) -> dict:
                 'price': float(pair.get('priceUsd', 0) or 0),
                 'liquidity': float(pair.get('liquidity', {}).get('usd', 0) or 0),
                 'price_change_24h': float(pair.get('priceChange', {}).get('h24', 0) or 0),
+                'volume_24h': float(pair.get('volume', {}).get('h24', 0) or 0),
+                'txns_24h_buys': int(pair.get('txns', {}).get('h24', {}).get('buys', 0) or 0),
+                'txns_24h_sells': int(pair.get('txns', {}).get('h24', {}).get('sells', 0) or 0),
                 'pair_address': pair.get('pairAddress', '')
             }
     except Exception as e:
@@ -85,6 +88,9 @@ def get_token_info_dexscreener(token_address: str) -> dict:
         'price': 0,
         'liquidity': 0,
         'price_change_24h': 0,
+        'volume_24h': 0,
+        'txns_24h_buys': 0,
+        'txns_24h_sells': 0,
         'pair_address': ''
     }
 
@@ -122,6 +128,7 @@ def send_smart_money_alert(
     token_name = token_info.get('name', 'Unknown Token')
     liquidity = token_info.get('liquidity', 0)
     price_change = token_info.get('price_change_24h', 0)
+    volume_24h = token_info.get('volume_24h', 0)
 
     # Toplam ETH alım tutarı
     total_eth = sum([p[1] for p in wallet_purchases if len(p) > 1])
@@ -150,6 +157,8 @@ def send_smart_money_alert(
         mcap_info = f"\n💰 <b>Şu anki MCap:</b> {format_number(current_mcap)}"
         if liquidity > 0:
             mcap_info += f"\n💧 <b>Likidite:</b> {format_number(liquidity)}"
+        if volume_24h > 0:
+            mcap_info += f"\n📊 <b>24s Hacim:</b> {format_number(volume_24h)}"
         if price_change != 0:
             emoji = "📈" if price_change > 0 else "📉"
             mcap_info += f"\n{emoji} <b>24s Değişim:</b> {price_change:+.1f}%"

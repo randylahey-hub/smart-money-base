@@ -33,6 +33,15 @@ TIME_WINDOW = int(os.getenv("TIME_WINDOW", "20"))
 # Aynı token için tekrar alert gönderilmeden önce bekleme süresi (saniye)
 ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "300"))  # 5 dakika
 
+# Minimum 24 saatlik hacim (USD) - Bunun altındaki tokenlar fake alarm kabul edilir
+MIN_VOLUME_24H = int(os.getenv("MIN_VOLUME_24H", "1000"))  # $1K
+
+# Fake alarm eşiği - Bir cüzdan kaç fake alert üretirse flaglenir
+FAKE_ALERT_FLAG_THRESHOLD = int(os.getenv("FAKE_ALERT_FLAG_THRESHOLD", "3"))
+
+# Data retention (gün) - Bu süreden eski veriler temizlenir
+DATA_RETENTION_DAYS = int(os.getenv("DATA_RETENTION_DAYS", "30"))
+
 # =============================================================================
 # BASE CHAIN ADRESLERI
 # =============================================================================
