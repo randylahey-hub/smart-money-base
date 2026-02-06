@@ -14,6 +14,11 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.settings import BASE_RPC_HTTP, TRANSFER_EVENT_SIGNATURE
 from scripts.telegram_alert import get_token_info_dexscreener
+from scripts.database import (
+    load_early_smart_money_db, save_early_smart_money_db,
+    load_smartest_wallets_db, save_smartest_wallets_db,
+    is_db_available
+)
 
 # Data dosya yolları
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,7 +34,12 @@ EARLY_BUY_THRESHOLD = 3  # Kaç farklı tokende early alım yapmış olmalı
 
 
 def load_early_smart_money() -> dict:
-    """Early smart money verilerini yükle."""
+    """Early smart money verilerini yükle. Önce DB, yoksa JSON."""
+    if is_db_available():
+        db_data = load_early_smart_money_db()
+        if db_data:
+            return db_data
+
     if os.path.exists(EARLY_SMART_MONEY_FILE):
         with open(EARLY_SMART_MONEY_FILE, 'r') as f:
             return json.load(f)
@@ -37,14 +47,26 @@ def load_early_smart_money() -> dict:
 
 
 def save_early_smart_money(data: dict):
-    """Early smart money verilerini kaydet."""
+    """Early smart money verilerini kaydet. DB + JSON."""
     data["updated_at"] = datetime.now().isoformat()
-    with open(EARLY_SMART_MONEY_FILE, 'w') as f:
-        json.dump(data, f, indent=2)
+
+    if is_db_available():
+        save_early_smart_money_db(data)
+
+    try:
+        with open(EARLY_SMART_MONEY_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+    except Exception:
+        pass
 
 
 def load_smartest_wallets() -> dict:
-    """Smartest wallets verilerini yükle."""
+    """Smartest wallets verilerini yükle. Önce DB, yoksa JSON."""
+    if is_db_available():
+        db_data = load_smartest_wallets_db()
+        if db_data:
+            return db_data
+
     if os.path.exists(SMARTEST_WALLETS_FILE):
         with open(SMARTEST_WALLETS_FILE, 'r') as f:
             return json.load(f)
@@ -57,10 +79,17 @@ def load_smartest_wallets() -> dict:
 
 
 def save_smartest_wallets(data: dict):
-    """Smartest wallets verilerini kaydet."""
+    """Smartest wallets verilerini kaydet. DB + JSON."""
     data["updated_at"] = datetime.now().isoformat()
-    with open(SMARTEST_WALLETS_FILE, 'w') as f:
-        json.dump(data, f, indent=2)
+
+    if is_db_available():
+        save_smartest_wallets_db(data)
+
+    try:
+        with open(SMARTEST_WALLETS_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+    except Exception:
+        pass
 
 
 def get_token_transfers_before_block(token_address: str, end_block: int, lookback_blocks: int = 1800) -> list:

@@ -31,7 +31,7 @@ MAX_MCAP = int(os.getenv("MAX_MCAP", "300000"))  # $300K
 TIME_WINDOW = int(os.getenv("TIME_WINDOW", "20"))
 
 # Aynı token için tekrar alert gönderilmeden önce bekleme süresi (saniye)
-ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "300"))  # 5 dakika
+ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "60"))  # 1 dakika (bullish alert icin dusuruldu)
 
 # Minimum 24 saatlik hacim (USD) - Bunun altındaki tokenlar fake alarm kabul edilir
 MIN_VOLUME_24H = int(os.getenv("MIN_VOLUME_24H", "1000"))  # $1K
@@ -39,11 +39,25 @@ MIN_VOLUME_24H = int(os.getenv("MIN_VOLUME_24H", "1000"))  # $1K
 # Minimum 24 saatlik islem sayisi (buys + sells) - Unique trader proxy
 MIN_TXNS_24H = int(os.getenv("MIN_TXNS_24H", "15"))
 
+# Minimum alım değeri (USD) - Bunun altı dust/airdrop kabul edilir
+MIN_BUY_VALUE_USD = int(os.getenv("MIN_BUY_VALUE_USD", "5"))  # $5
+
+# Minimum likidite (USD) - Bunun altı güvenilmez token
+MIN_LIQUIDITY = int(os.getenv("MIN_LIQUIDITY", "5000"))  # $5K
+
+# Bullish tekrarlayan alert penceresi (saniye) - Bu süre içinde tekrar alert = bullish
+BULLISH_WINDOW = int(os.getenv("BULLISH_WINDOW", "1800"))  # 30 dakika
+
 # Fake alarm eşiği - Bir cüzdan kaç fake alert üretirse flaglenir
 FAKE_ALERT_FLAG_THRESHOLD = int(os.getenv("FAKE_ALERT_FLAG_THRESHOLD", "3"))
 
 # Data retention (gün) - Bu süreden eski veriler temizlenir
 DATA_RETENTION_DAYS = int(os.getenv("DATA_RETENTION_DAYS", "30"))
+
+# =============================================================================
+# DATABASE AYARLARI (Neon PostgreSQL)
+# =============================================================================
+DATABASE_URL = os.getenv("DATABASE_URL", "")  # Neon connection string
 
 # =============================================================================
 # BASE CHAIN ADRESLERI

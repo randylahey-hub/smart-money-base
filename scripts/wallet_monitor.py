@@ -24,6 +24,9 @@ from config.settings import (
     MAX_MCAP,
     MIN_VOLUME_24H,
     MIN_TXNS_24H,
+    MIN_BUY_VALUE_USD,
+    MIN_LIQUIDITY,
+    BULLISH_WINDOW,
     WETH_ADDRESS,
     TRANSFER_EVENT_SIGNATURE,
     EXCLUDED_TOKENS,
@@ -43,6 +46,7 @@ from scripts.early_detector import (
 from scripts.virtual_trader import get_trader
 from scripts.daily_report import check_and_send_if_time
 from scripts.fake_alert_tracker import record_fake_alert, is_flagged_wallet
+from scripts.database import init_db, is_db_available
 
 # Flush için
 sys.stdout.reconfigure(line_buffering=True)
@@ -63,7 +67,7 @@ class SmartMoneyMonitor:
         # Token alımlarını takip et: {token_address: [(wallet, eth_amount, mcap, timestamp), ...]}
         self.token_purchases = defaultdict(list)
 
-        # Son alert zamanları: {token_address: timestamp}
+        # Son alert bilgileri: {token_address: {"time": timestamp, "mcap": mcap, "count": alert_count}}
         self.last_alerts = {}
 
         # Web3 bağlantısı
@@ -120,10 +124,32 @@ class SmartMoneyMonitor:
                 del self.token_purchases[token]
 
     def _can_send_alert(self, token_address: str) -> bool:
-        """Alert cooldown kontrolü."""
+        """Alert cooldown kontrolü (bullish alert'lere izin verir)."""
         if token_address not in self.last_alerts:
             return True
-        return time.time() - self.last_alerts[token_address] > ALERT_COOLDOWN
+        last_info = self.last_alerts[token_address]
+        elapsed = time.time() - last_info["time"]
+        # 60sn içinde → spam engeli (gönderme)
+        # 60sn-30dk arası → bullish alert olarak gönder
+        # 30dk sonrası → normal yeni alert
+        return elapsed > ALERT_COOLDOWN
+
+    def _is_bullish_alert(self, token_address: str) -> tuple:
+        """
+        Bullish alert kontrolü.
+        Returns: (is_bullish, alert_count, first_alert_mcap)
+        """
+        if token_address not in self.last_alerts:
+            return False, 1, 0
+
+        last_info = self.last_alerts[token_address]
+        elapsed = time.time() - last_info["time"]
+
+        # BULLISH_WINDOW (30dk) içinde tekrar alert geliyorsa = bullish
+        if elapsed <= BULLISH_WINDOW:
+            return True, last_info["count"] + 1, last_info["mcap"]
+
+        return False, 1, 0
 
     def _get_eth_value_from_tx(self, tx_hash: str, wallet: str) -> float:
         """Transaction'dan ETH değerini al."""
@@ -203,8 +229,39 @@ class SmartMoneyMonitor:
             if token_symbol.upper() in [s.upper() for s in EXCLUDED_SYMBOLS]:
                 return
 
+            # === AIRDROP/DUST FILTRESI ===
+            # Kontrol 1: Likidite kontrolü - düşük likidite = güvenilmez token
+            liquidity = token_info.get('liquidity', 0)
+            if liquidity < MIN_LIQUIDITY:
+                print(f"⏭️  Skip: {token_symbol} | Likidite: ${liquidity:.0f} < ${MIN_LIQUIDITY:,} minimum")
+                return
+
+            # Kontrol 2: from_address kontrolü - airdrop mı gerçek alım mı?
+            # Gerçek alım: from_address bir DEX pair adresi olur
+            # Airdrop: from_address random bir cüzdan/deployer olur
+            pair_address = token_info.get('pair_address', '').lower()
+            if pair_address and from_address.lower() != pair_address.lower():
+                # from_address bilinen DEX router'lardan biri mi?
+                known_dex = [
+                    "0x2626664c2603336e57b271c5c0b26f421741e481",  # Uniswap V3 Router
+                    "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad",  # Universal Router
+                    "0x6131b5fae19ea4f9d964eac0408e4408b66337b5",  # Kyberswap
+                    "0x1111111254eeb25477b68fb85ed929f73a960582",  # 1inch
+                ]
+                if from_address.lower() not in known_dex:
+                    print(f"⏭️  Skip: {token_symbol} | Airdrop/transfer tespit (from: {from_address[:10]}... ≠ pair)")
+                    return
+
             # ETH değerini tahmin et
             eth_amount = self._estimate_eth_from_transfer(log)
+
+            # Kontrol 3: Minimum alım değeri - dust transfer filtresi
+            eth_price_usd = 2500  # Yaklaşık ETH fiyatı
+            buy_value_usd = eth_amount * eth_price_usd
+            if 0 < buy_value_usd < MIN_BUY_VALUE_USD:
+                print(f"⏭️  Skip: {token_symbol} | Dust: ${buy_value_usd:.2f} < ${MIN_BUY_VALUE_USD} minimum")
+                return
+
             current_mcap = token_info.get('mcap', 0)
 
             # Market cap filtresi - MAX_MCAP üstündeki tokenlar alert dışı
@@ -316,6 +373,13 @@ class SmartMoneyMonitor:
                 for p in unique_wallets.values()
             ]
 
+            # === BULLISH KONTROL ===
+            current_mcap_val = token_info.get('mcap', 0)
+            is_bullish, alert_count, first_alert_mcap = self._is_bullish_alert(token_address)
+
+            if is_bullish:
+                print(f"🔥 BULLISH ALERT! {token_sym} — {alert_count}. alert | İlk: ${first_alert_mcap/1e3:.0f}K → Şimdi: ${current_mcap_val/1e3:.0f}K")
+
             # Alert gönder
             # UTC+3 (Turkiye saati)
             tr_time = datetime.now(timezone.utc) + timedelta(hours=3)
@@ -324,11 +388,18 @@ class SmartMoneyMonitor:
                 token_address=token_address,
                 wallet_purchases=wallet_purchases,
                 first_buy_time=first_buy_time,
-                token_info=token_info
+                token_info=token_info,
+                is_bullish=is_bullish,
+                alert_count=alert_count,
+                first_alert_mcap=first_alert_mcap
             )
 
             if success:
-                self.last_alerts[token_address] = time.time()
+                self.last_alerts[token_address] = {
+                    "time": time.time(),
+                    "mcap": first_alert_mcap if is_bullish else current_mcap_val,
+                    "count": alert_count
+                }
                 print(f"✅ Alert gönderildi: {token_info.get('symbol', token_address[:10])}")
 
                 # === EARLY DETECTION ===
@@ -368,6 +439,9 @@ class SmartMoneyMonitor:
         print(f"💰 Max MCap: ${MAX_MCAP/1e3:.0f}K")
         print(f"📊 Min Hacim: ${MIN_VOLUME_24H:,}")
         print(f"👥 Min İşlem: {MIN_TXNS_24H}")
+        print(f"💧 Min Likidite: ${MIN_LIQUIDITY:,}")
+        print(f"🛡️  Min Alım: ${MIN_BUY_VALUE_USD}")
+        print(f"🔥 Bullish Pencere: {BULLISH_WINDOW}sn")
         print(f"⏳ Alert cooldown: {ALERT_COOLDOWN} saniye")
         print("=" * 60 + "\n")
 
@@ -379,6 +453,9 @@ class SmartMoneyMonitor:
             f"• Max MCap: ${MAX_MCAP/1e3:.0f}K\n"
             f"• Min Hacim: ${MIN_VOLUME_24H:,}\n"
             f"• Min İşlem: {MIN_TXNS_24H}\n"
+            f"• Min Likidite: ${MIN_LIQUIDITY:,}\n"
+            f"• Airdrop Filtresi: Aktif (${MIN_BUY_VALUE_USD}+ alım)\n"
+            f"• Bullish Alert: {BULLISH_WINDOW//60}dk pencere\n"
             f"• Virtual Trading: Aktif (0.5 ETH)\n"
             f"• Daily Report: 23:30"
         )
@@ -476,6 +553,13 @@ def main():
         return
 
     print(f"📂 Cüzdan dosyası: {wallets_file}")
+
+    # Database başlat
+    if is_db_available():
+        init_db()
+        print("🗄️  PostgreSQL aktif")
+    else:
+        print("📁 JSON dosya sistemi aktif (DATABASE_URL yok)")
 
     # Monitor başlat
     monitor = SmartMoneyMonitor(wallets_file)

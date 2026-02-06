@@ -13,6 +13,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.telegram_alert import get_token_info_dexscreener
+from scripts.database import load_portfolio_db, save_portfolio_db, is_db_available
 
 # Data dosya yolu
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,19 +32,14 @@ def ensure_logs_dir():
         os.makedirs(logs_dir)
 
 
-def load_portfolio() -> dict:
-    """Portföyü yükle veya yeni oluştur."""
-    if os.path.exists(PORTFOLIO_FILE):
-        with open(PORTFOLIO_FILE, 'r') as f:
-            return json.load(f)
-
-    # Yeni portföy
+def _default_portfolio() -> dict:
+    """Yeni boş portföy şablonu."""
     return {
         "initial_balance": INITIAL_BALANCE,
         "created_at": datetime.now().isoformat(),
         "scenario1": {
             "name": "Smart Money Copy",
-            "balance_eth": INITIAL_BALANCE / 2,  # 0.25 ETH
+            "balance_eth": INITIAL_BALANCE / 2,
             "positions": [],
             "closed_trades": [],
             "total_pnl_eth": 0.0,
@@ -52,7 +48,7 @@ def load_portfolio() -> dict:
         },
         "scenario2": {
             "name": "Smartest Wallets Copy",
-            "balance_eth": INITIAL_BALANCE / 2,  # 0.25 ETH
+            "balance_eth": INITIAL_BALANCE / 2,
             "positions": [],
             "closed_trades": [],
             "total_pnl_eth": 0.0,
@@ -63,11 +59,36 @@ def load_portfolio() -> dict:
     }
 
 
+def load_portfolio() -> dict:
+    """Portföyü yükle. Önce DB, yoksa JSON fallback."""
+    # DB'den dene
+    if is_db_available():
+        db_data = load_portfolio_db()
+        if db_data:
+            return db_data
+
+    # JSON fallback
+    if os.path.exists(PORTFOLIO_FILE):
+        with open(PORTFOLIO_FILE, 'r') as f:
+            return json.load(f)
+
+    return _default_portfolio()
+
+
 def save_portfolio(data: dict):
-    """Portföyü kaydet."""
+    """Portföyü kaydet. DB + JSON (ikisine de yaz)."""
     data["updated_at"] = datetime.now().isoformat()
-    with open(PORTFOLIO_FILE, 'w') as f:
-        json.dump(data, f, indent=2)
+
+    # DB'ye yaz
+    if is_db_available():
+        save_portfolio_db(data)
+
+    # JSON'a da yaz (backup)
+    try:
+        with open(PORTFOLIO_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+    except Exception:
+        pass  # JSON yazılamazsa sorun değil (Koyeb ephemeral)
 
 
 def log_trade(scenario: str, action: str, token: str, details: str):

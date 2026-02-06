@@ -11,6 +11,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.settings import FAKE_ALERT_FLAG_THRESHOLD, DATA_RETENTION_DAYS
+from scripts.database import load_fake_alerts_db, save_fake_alerts_db, is_db_available
 
 # Data dosya yolu
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -18,7 +19,12 @@ FAKE_ALERTS_FILE = os.path.join(BASE_DIR, "data", "fake_alerts.json")
 
 
 def load_fake_alerts() -> dict:
-    """Fake alert verilerini yukle."""
+    """Fake alert verilerini yukle. Önce DB, yoksa JSON."""
+    if is_db_available():
+        db_data = load_fake_alerts_db()
+        if db_data:
+            return db_data
+
     if os.path.exists(FAKE_ALERTS_FILE):
         with open(FAKE_ALERTS_FILE, 'r') as f:
             return json.load(f)
@@ -31,10 +37,17 @@ def load_fake_alerts() -> dict:
 
 
 def save_fake_alerts(data: dict):
-    """Fake alert verilerini kaydet."""
+    """Fake alert verilerini kaydet. DB + JSON."""
     data["updated_at"] = datetime.now().isoformat()
-    with open(FAKE_ALERTS_FILE, 'w') as f:
-        json.dump(data, f, indent=2)
+
+    if is_db_available():
+        save_fake_alerts_db(data)
+
+    try:
+        with open(FAKE_ALERTS_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+    except Exception:
+        pass
 
 
 def record_fake_alert(wallet_addresses: list, token_address: str, token_symbol: str, volume_24h: float):

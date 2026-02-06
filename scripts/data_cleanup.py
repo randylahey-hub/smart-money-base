@@ -11,6 +11,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.settings import DATA_RETENTION_DAYS
+from scripts.database import is_db_available
 
 # Data dosya yollari
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

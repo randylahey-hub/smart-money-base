@@ -101,7 +101,10 @@ def send_smart_money_alert(
     wallet_purchases: list,  # [(wallet_address, eth_amount, buy_mcap), ...]
     first_buy_time: str,
     current_mcap: float = None,
-    token_info: dict = None
+    token_info: dict = None,
+    is_bullish: bool = False,
+    alert_count: int = 1,
+    first_alert_mcap: float = 0
 ) -> bool:
     """
     Smart money alert mesajı gönderir (gelişmiş versiyon).
@@ -167,8 +170,24 @@ def send_smart_money_alert(
             emoji = "📈" if price_change > 0 else "📉"
             mcap_info += f"\n{emoji} <b>24s Değişim:</b> {price_change:+.1f}%"
 
+    # === BULLISH HEADER ===
+    if is_bullish and first_alert_mcap > 0:
+        mcap_change_pct = ((current_mcap - first_alert_mcap) / first_alert_mcap * 100) if first_alert_mcap > 0 else 0
+        bullish_header = f"""🔥🔥 <b>BULLISH ALERT!</b> 🔥🔥
+
+🔁 <b>{alert_count}. alert</b> (30dk içinde)
+📈 <b>İlk alert MCap:</b> {format_number(first_alert_mcap)} → Şimdi: {format_number(current_mcap)} ({mcap_change_pct:+.0f}%)
+"""
+    elif is_bullish:
+        bullish_header = f"""🔥🔥 <b>BULLISH ALERT!</b> 🔥🔥
+
+🔁 <b>{alert_count}. alert</b> (30dk içinde)
+"""
+    else:
+        bullish_header = "🚨 <b>SMART MONEY ALERT!</b> 🚨"
+
     message = f"""
-🚨 <b>SMART MONEY ALERT!</b> 🚨
+{bullish_header}
 
 📊 <b>Token:</b> {token_symbol}
 📛 <b>Ad:</b> {token_name}
