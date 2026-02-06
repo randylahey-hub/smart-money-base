@@ -6,6 +6,7 @@ Smart money cüzdanları aynı tokeni aldığında bildirim gönderir.
 import requests
 import sys
 import os
+from datetime import datetime, timezone, timedelta
 
 # Config'i import et
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -141,10 +142,13 @@ def send_smart_money_alert(
         buy_mcap = purchase[2] if len(purchase) > 2 else 0
 
         line = f"  • <code>{wallet[:8]}...{wallet[-4:]}</code>"
+        details = []
         if eth_amount > 0:
-            line += f" | <b>{eth_amount:.3f} ETH</b>"
+            details.append(f"<b>{eth_amount:.3f} ETH</b>")
         if buy_mcap > 0:
-            line += f" @ {format_number(buy_mcap)}"
+            details.append(f"MCap: {format_number(buy_mcap)}")
+        if details:
+            line += f" | {' | '.join(details)}"
         wallet_lines.append(line)
 
     wallet_list = "\n".join(wallet_lines)

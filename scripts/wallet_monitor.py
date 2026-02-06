@@ -9,7 +9,7 @@ import json
 import sys
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from web3 import Web3
 
@@ -317,7 +317,9 @@ class SmartMoneyMonitor:
             ]
 
             # Alert gönder
-            first_buy_time = datetime.now().strftime("%H:%M:%S")
+            # UTC+3 (Turkiye saati)
+            tr_time = datetime.now(timezone.utc) + timedelta(hours=3)
+            first_buy_time = tr_time.strftime("%H:%M:%S")
             success = send_smart_money_alert(
                 token_address=token_address,
                 wallet_purchases=wallet_purchases,
