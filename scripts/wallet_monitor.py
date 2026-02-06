@@ -123,16 +123,26 @@ class SmartMoneyMonitor:
             if not self.token_purchases[token]:
                 del self.token_purchases[token]
 
-    def _can_send_alert(self, token_address: str) -> bool:
-        """Alert cooldown kontrolü (bullish alert'lere izin verir)."""
+    def _can_send_alert(self, token_address: str, unique_wallet_count: int = 0) -> bool:
+        """
+        Alert cooldown kontrolü.
+        - Normal: 5dk cooldown
+        - Bullish: Cooldown içinde bile, daha fazla cüzdan aldıysa geçir
+        """
         if token_address not in self.last_alerts:
             return True
         last_info = self.last_alerts[token_address]
         elapsed = time.time() - last_info["time"]
-        # 60sn içinde → spam engeli (gönderme)
-        # 60sn-30dk arası → bullish alert olarak gönder
-        # 30dk sonrası → normal yeni alert
-        return elapsed > ALERT_COOLDOWN
+
+        # Cooldown geçmişse → normal alert
+        if elapsed > ALERT_COOLDOWN:
+            return True
+
+        # Cooldown içinde ama daha fazla cüzdan aldıysa → bullish alert olarak geçir
+        if unique_wallet_count > last_info.get("wallet_count", 0):
+            return True
+
+        return False
 
     def _is_bullish_alert(self, token_address: str) -> tuple:
         """
@@ -326,7 +336,7 @@ class SmartMoneyMonitor:
                 unique_wallets[wallet] = p  # (wallet, eth, mcap, ts)
 
         if len(unique_wallets) >= ALERT_THRESHOLD:
-            if not self._can_send_alert(token_address):
+            if not self._can_send_alert(token_address, len(unique_wallets)):
                 print(f"⏳ Alert cooldown aktif: {token_address[:10]}...")
                 return
 
@@ -398,7 +408,8 @@ class SmartMoneyMonitor:
                 self.last_alerts[token_address] = {
                     "time": time.time(),
                     "mcap": first_alert_mcap if is_bullish else current_mcap_val,
-                    "count": alert_count
+                    "count": alert_count,
+                    "wallet_count": len(unique_wallets)
                 }
                 print(f"✅ Alert gönderildi: {token_info.get('symbol', token_address[:10])}")
 

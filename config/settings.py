@@ -31,7 +31,7 @@ MAX_MCAP = int(os.getenv("MAX_MCAP", "300000"))  # $300K
 TIME_WINDOW = int(os.getenv("TIME_WINDOW", "20"))
 
 # Aynı token için tekrar alert gönderilmeden önce bekleme süresi (saniye)
-ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "60"))  # 1 dakika (bullish alert icin dusuruldu)
+ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "300"))  # 5 dakika
 
 # Minimum 24 saatlik hacim (USD) - Bunun altındaki tokenlar fake alarm kabul edilir
 MIN_VOLUME_24H = int(os.getenv("MIN_VOLUME_24H", "1000"))  # $1K
