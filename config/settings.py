@@ -36,6 +36,9 @@ ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "300"))  # 5 dakika
 # Minimum 24 saatlik hacim (USD) - Bunun altındaki tokenlar fake alarm kabul edilir
 MIN_VOLUME_24H = int(os.getenv("MIN_VOLUME_24H", "1000"))  # $1K
 
+# Minimum 24 saatlik islem sayisi (buys + sells) - Unique trader proxy
+MIN_TXNS_24H = int(os.getenv("MIN_TXNS_24H", "15"))
+
 # Fake alarm eşiği - Bir cüzdan kaç fake alert üretirse flaglenir
 FAKE_ALERT_FLAG_THRESHOLD = int(os.getenv("FAKE_ALERT_FLAG_THRESHOLD", "3"))
 

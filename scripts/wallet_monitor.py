@@ -23,6 +23,7 @@ from config.settings import (
     ALERT_COOLDOWN,
     MAX_MCAP,
     MIN_VOLUME_24H,
+    MIN_TXNS_24H,
     WETH_ADDRESS,
     TRANSFER_EVENT_SIGNATURE,
     EXCLUDED_TOKENS,
@@ -211,6 +212,21 @@ class SmartMoneyMonitor:
                 print(f"⏭️  Skip: {token_symbol} | MCap: ${current_mcap/1e6:.2f}M > ${MAX_MCAP/1e6:.0f}M limit")
                 return
 
+            # === COP TOKEN FILTRESI (Erken eleme) ===
+            # Hacim kontrolu - dusuk hacimli tokenlar direkt elensin
+            volume_24h = token_info.get('volume_24h', 0)
+            if volume_24h < MIN_VOLUME_24H:
+                print(f"⏭️  Skip: {token_symbol} | 24s Hacim: ${volume_24h:.0f} < ${MIN_VOLUME_24H:,} minimum")
+                return
+
+            # Islem sayisi kontrolu (makers proxy) - cok az islem = cop token
+            txns_buys = token_info.get('txns_24h_buys', 0)
+            txns_sells = token_info.get('txns_24h_sells', 0)
+            total_txns = txns_buys + txns_sells
+            if total_txns < MIN_TXNS_24H:
+                print(f"⏭️  Skip: {token_symbol} | 24s Islem: {total_txns} < {MIN_TXNS_24H} minimum")
+                return
+
             # Alımı kaydet: (wallet, eth_amount, mcap, timestamp)
             self.token_purchases[token_address].append(
                 (to_address, eth_amount, current_mcap, current_time)
@@ -262,16 +278,32 @@ class SmartMoneyMonitor:
             # Token bilgisi al
             token_info = get_token_info_dexscreener(token_address)
 
-            # === HACIM KONTROLU ===
+            # === COP TOKEN KONTROLU (2. katman - alert oncesi son kontrol) ===
             volume_24h = token_info.get('volume_24h', 0)
+            txns_buys = token_info.get('txns_24h_buys', 0)
+            txns_sells = token_info.get('txns_24h_sells', 0)
+            total_txns = txns_buys + txns_sells
+            token_sym = token_info.get('symbol', 'UNKNOWN')
+
+            is_fake = False
+            fake_reason = ""
+
             if volume_24h < MIN_VOLUME_24H:
-                print(f"⚠️  FAKE ALERT: {token_info.get('symbol', 'UNKNOWN')} | 24s Hacim: ${volume_24h:.0f} < ${MIN_VOLUME_24H} minimum")
+                is_fake = True
+                fake_reason = f"24s Hacim: ${volume_24h:.0f} < ${MIN_VOLUME_24H:,}"
+
+            if total_txns < MIN_TXNS_24H:
+                is_fake = True
+                fake_reason += f" | 24s Islem: {total_txns} < {MIN_TXNS_24H}" if fake_reason else f"24s Islem: {total_txns} < {MIN_TXNS_24H}"
+
+            if is_fake:
+                print(f"⚠️  FAKE ALERT ENGELLENDI: {token_sym} | {fake_reason}")
                 # Fake alert'teki cuzdanlari flagle
                 wallet_list = [p[0] for p in unique_wallets.values()]
                 record_fake_alert(
                     wallet_addresses=wallet_list,
                     token_address=token_address,
-                    token_symbol=token_info.get('symbol', 'UNKNOWN'),
+                    token_symbol=token_sym,
                     volume_24h=volume_24h
                 )
                 # Bu token icin tracking'i temizle (tekrar alert gondermesin)
@@ -333,6 +365,7 @@ class SmartMoneyMonitor:
         print(f"🎯 Alert eşiği: {ALERT_THRESHOLD} cüzdan")
         print(f"💰 Max MCap: ${MAX_MCAP/1e6:.0f}M")
         print(f"📊 Min Hacim: ${MIN_VOLUME_24H:,}")
+        print(f"👥 Min İşlem: {MIN_TXNS_24H}")
         print(f"⏳ Alert cooldown: {ALERT_COOLDOWN} saniye")
         print("=" * 60 + "\n")
 
@@ -343,6 +376,7 @@ class SmartMoneyMonitor:
             f"• Alert eşiği: {ALERT_THRESHOLD} cüzdan / {TIME_WINDOW}sn\n"
             f"• Max MCap: ${MAX_MCAP/1e6:.0f}M\n"
             f"• Min Hacim: ${MIN_VOLUME_24H:,}\n"
+            f"• Min İşlem: {MIN_TXNS_24H}\n"
             f"• Virtual Trading: Aktif (0.5 ETH)\n"
             f"• Daily Report: 23:30"
         )
