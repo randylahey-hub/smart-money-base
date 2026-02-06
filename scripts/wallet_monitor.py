@@ -246,21 +246,9 @@ class SmartMoneyMonitor:
                 print(f"⏭️  Skip: {token_symbol} | Likidite: ${liquidity:.0f} < ${MIN_LIQUIDITY:,} minimum")
                 return
 
-            # Kontrol 2: from_address kontrolü - airdrop mı gerçek alım mı?
-            # Gerçek alım: from_address bir DEX pair adresi olur
-            # Airdrop: from_address random bir cüzdan/deployer olur
-            pair_address = token_info.get('pair_address', '').lower()
-            if pair_address and from_address.lower() != pair_address.lower():
-                # from_address bilinen DEX router'lardan biri mi?
-                known_dex = [
-                    "0x2626664c2603336e57b271c5c0b26f421741e481",  # Uniswap V3 Router
-                    "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad",  # Universal Router
-                    "0x6131b5fae19ea4f9d964eac0408e4408b66337b5",  # Kyberswap
-                    "0x1111111254eeb25477b68fb85ed929f73a960582",  # 1inch
-                ]
-                if from_address.lower() not in known_dex:
-                    print(f"⏭️  Skip: {token_symbol} | Airdrop/transfer tespit (from: {from_address[:10]}... ≠ pair)")
-                    return
+            # NOT: from_address kontrolü kaldırıldı - çok agresifti, gerçek alımları da engelliyordu
+            # Yüzlerce DEX aggregator/router var, hepsini listelemek imkansız
+            # Likidite + dust + hacim filtreleri airdrop'ları zaten engelliyor
 
             # ETH değerini tahmin et
             eth_amount = self._estimate_eth_from_transfer(log)
