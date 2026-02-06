@@ -209,7 +209,7 @@ class SmartMoneyMonitor:
 
             # Market cap filtresi - MAX_MCAP üstündeki tokenlar alert dışı
             if current_mcap > MAX_MCAP:
-                print(f"⏭️  Skip: {token_symbol} | MCap: ${current_mcap/1e6:.2f}M > ${MAX_MCAP/1e6:.0f}M limit")
+                print(f"⏭️  Skip: {token_symbol} | MCap: ${current_mcap/1e3:.0f}K > ${MAX_MCAP/1e3:.0f}K limit")
                 return
 
             # === COP TOKEN FILTRESI (Erken eleme) ===
@@ -365,7 +365,7 @@ class SmartMoneyMonitor:
         print(f"📊 İzlenen cüzdan sayısı: {len(self.wallets)}")
         print(f"⏱️  Zaman penceresi: {TIME_WINDOW} saniye")
         print(f"🎯 Alert eşiği: {ALERT_THRESHOLD} cüzdan")
-        print(f"💰 Max MCap: ${MAX_MCAP/1e6:.0f}M")
+        print(f"💰 Max MCap: ${MAX_MCAP/1e3:.0f}K")
         print(f"📊 Min Hacim: ${MIN_VOLUME_24H:,}")
         print(f"👥 Min İşlem: {MIN_TXNS_24H}")
         print(f"⏳ Alert cooldown: {ALERT_COOLDOWN} saniye")
@@ -376,7 +376,7 @@ class SmartMoneyMonitor:
             f"🟢 Monitor v2.0 başlatıldı!\n"
             f"• {len(self.wallets)} cüzdan izleniyor\n"
             f"• Alert eşiği: {ALERT_THRESHOLD} cüzdan / {TIME_WINDOW}sn\n"
-            f"• Max MCap: ${MAX_MCAP/1e6:.0f}M\n"
+            f"• Max MCap: ${MAX_MCAP/1e3:.0f}K\n"
             f"• Min Hacim: ${MIN_VOLUME_24H:,}\n"
             f"• Min İşlem: {MIN_TXNS_24H}\n"
             f"• Virtual Trading: Aktif (0.5 ETH)\n"
