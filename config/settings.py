@@ -22,7 +22,7 @@ BASE_RPC_WSS = f"wss://base-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
 # ALERT AYARLARI
 # =============================================================================
 # Kaç cüzdan aynı tokeni almalı ki alert tetiklensin
-ALERT_THRESHOLD = int(os.getenv("ALERT_THRESHOLD", "3"))
+ALERT_THRESHOLD = int(os.getenv("ALERT_THRESHOLD", "2"))
 
 # Maksimum market cap filtresi (USD) - Bunun üstündeki tokenlar alert dışı
 MAX_MCAP = int(os.getenv("MAX_MCAP", "300000"))  # $300K
@@ -34,7 +34,7 @@ TIME_WINDOW = int(os.getenv("TIME_WINDOW", "20"))
 ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "300"))  # 5 dakika
 
 # Minimum 24 saatlik hacim (USD) - Bunun altındaki tokenlar fake alarm kabul edilir
-MIN_VOLUME_24H = int(os.getenv("MIN_VOLUME_24H", "1000"))  # $1K
+MIN_VOLUME_24H = int(os.getenv("MIN_VOLUME_24H", "10000"))  # $10K
 
 # Minimum 24 saatlik islem sayisi (buys + sells) - Unique trader proxy
 MIN_TXNS_24H = int(os.getenv("MIN_TXNS_24H", "15"))
