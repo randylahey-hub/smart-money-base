@@ -233,14 +233,11 @@ class SmartMoneyMonitor:
                 return  # Aynı cüzdan aynı tokeni zaten aldı
 
             # === SWAP DOĞRULAMASI ===
-            # Airdrop/dust saldırılarını engelle:
-            # 1) Transaction içinde Swap event yoksa → alım değil
-            # 2) Transaction'ı başlatan (tx.from) smart money cüzdanı değilse → başkası göndermiş
+            # Airdrop/dust saldırılarını engelle: Transaction içinde Swap event yoksa → alım değil
             try:
                 tx_hash = log['transactionHash']
                 receipt = self.w3.eth.get_transaction_receipt(tx_hash)
 
-                # Kontrol 1: Swap event var mı?
                 has_swap = False
                 for receipt_log in receipt['logs']:
                     if receipt_log['topics'] and receipt_log['topics'][0].hex() in [s.replace('0x', '') for s in SWAP_SIGNATURES]:
@@ -250,15 +247,8 @@ class SmartMoneyMonitor:
                     print(f"⏭️  Skip: {token_address[:10]}... → {to_address[:10]}... | Swap yok (airdrop/dust)")
                     return
 
-                # Kontrol 2: Transaction'ı başlatan bizim cüzdan mı?
-                tx_initiator = receipt['from'].lower()
-                if tx_initiator not in self.wallets_set:
-                    print(f"⏭️  Skip: {token_address[:10]}... → {to_address[:10]}... | Swap var ama başlatan ({tx_initiator[:10]}...) smart money değil")
-                    return
-
             except Exception as e:
                 print(f"⚠️ Swap doğrulama hatası: {e}")
-                # Doğrulama başarısız olursa güvenli tarafta kal, devam etme
                 return
 
             # Token bilgisini al (sembol kontrolü için)
