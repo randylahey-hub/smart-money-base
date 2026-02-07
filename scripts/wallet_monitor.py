@@ -29,6 +29,7 @@ from config.settings import (
     BULLISH_WINDOW,
     WETH_ADDRESS,
     TRANSFER_EVENT_SIGNATURE,
+    SWAP_SIGNATURES,
     EXCLUDED_TOKENS,
     EXCLUDED_SYMBOLS
 )
@@ -231,6 +232,24 @@ class SmartMoneyMonitor:
             if to_address.lower() in [w.lower() for w in existing_wallets]:
                 return  # Aynı cüzdan aynı tokeni zaten aldı
 
+            # === SWAP DOĞRULAMASI ===
+            # Airdrop/dust saldırılarını engelle: Transaction içinde Swap event yoksa → alım değil
+            try:
+                tx_hash = log['transactionHash']
+                receipt = self.w3.eth.get_transaction_receipt(tx_hash)
+                has_swap = False
+                for receipt_log in receipt['logs']:
+                    if receipt_log['topics'] and receipt_log['topics'][0].hex() in [s.replace('0x', '') for s in SWAP_SIGNATURES]:
+                        has_swap = True
+                        break
+                if not has_swap:
+                    print(f"⏭️  Skip: {token_address[:10]}... → {to_address[:10]}... | Swap yok (airdrop/dust)")
+                    return
+            except Exception as e:
+                print(f"⚠️ Swap doğrulama hatası: {e}")
+                # Doğrulama başarısız olursa güvenli tarafta kal, devam etme
+                return
+
             # Token bilgisini al (sembol kontrolü için)
             token_info = get_token_info_dexscreener(token_address)
             token_symbol = token_info.get('symbol', 'UNKNOWN')
@@ -246,9 +265,8 @@ class SmartMoneyMonitor:
                 print(f"⏭️  Skip: {token_symbol} | Likidite: ${liquidity:.0f} < ${MIN_LIQUIDITY:,} minimum")
                 return
 
-            # NOT: from_address kontrolü kaldırıldı - çok agresifti, gerçek alımları da engelliyordu
-            # Yüzlerce DEX aggregator/router var, hepsini listelemek imkansız
-            # Likidite + dust + hacim filtreleri airdrop'ları zaten engelliyor
+            # NOT: from_address whitelist kontrolü kaldırıldı (v1) - çok agresifti
+            # Yerine: Swap event doğrulaması eklendi (v2) - tx receipt içinde Swap varsa gerçek alım
 
             # ETH değerini tahmin et
             eth_amount = self._estimate_eth_from_transfer(log)
@@ -456,6 +474,7 @@ class SmartMoneyMonitor:
         print(f"🛡️  Min Alım: ${MIN_BUY_VALUE_USD}")
         print(f"🔥 Bullish Pencere: {BULLISH_WINDOW}sn")
         print(f"⏳ Alert cooldown: {ALERT_COOLDOWN} saniye")
+        print(f"🔍 Swap Doğrulama: Aktif ({len(SWAP_SIGNATURES)} DEX)")
         print(f"📡 Trade Signals: DB üzerinden (ayrı bot)")
         print("=" * 60 + "\n")
 
@@ -468,6 +487,7 @@ class SmartMoneyMonitor:
             f"• Min Hacim: ${MIN_VOLUME_24H:,}\n"
             f"• Min İşlem: {MIN_TXNS_24H}\n"
             f"• Min Likidite: ${MIN_LIQUIDITY:,}\n"
+            f"• Swap Doğrulama: Aktif ({len(SWAP_SIGNATURES)} DEX)\n"
             f"• Airdrop Filtresi: Aktif (${MIN_BUY_VALUE_USD}+ alım)\n"
             f"• Bullish Alert: {BULLISH_WINDOW//60}dk pencere\n"
             f"• Virtual Trading: Aktif (0.5 ETH)\n"

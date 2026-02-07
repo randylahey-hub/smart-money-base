@@ -94,13 +94,20 @@ LOG_FILE = "logs/monitor.log"
 CHECKPOINT_FILE = "data/monitor_checkpoint.json"
 
 # =============================================================================
-# UNISWAP V3 EVENT SIGNATURES
+# EVENT SIGNATURES
 # =============================================================================
-# Swap event: Swap(address,address,int256,int256,uint160,uint128,int24)
-SWAP_EVENT_SIGNATURE = "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67"
-
 # Transfer event: Transfer(address,address,uint256)
 TRANSFER_EVENT_SIGNATURE = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+
+# Swap event signatures (birden fazla DEX destegi)
+SWAP_SIGNATURES = [
+    "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67",  # Uniswap V3
+    "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822",  # Uniswap V2
+    "0xb3e2773606abfd36b5bd91394b3a54d1398336c65005baf7f44571de7dacfd46",  # Aerodrome
+]
+
+# Geriye uyumluluk icin (eski kod referanslari)
+SWAP_EVENT_SIGNATURE = SWAP_SIGNATURES[0]
 
 # =============================================================================
 # GERÇEK TRADİNG AYARLARI
