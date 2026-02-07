@@ -1,5 +1,5 @@
 {
-  "count": 190,
+  "count": 188,
   "wallets": [
     "0x19dc7cfae2bff62b2483d91b3428726493b84912",
     "0x05ac6de951c2fd2a371dbb21a33b1ad2f4f69525",
@@ -10,7 +10,6 @@
     "0x6c8c3784151932a06f32606f99a49b76ab7b8905",
     "0x35841dff52ff59d9a0e8b0bf9ecb9d83e285a2f6",
     "0x59905d5d085e0caf031ba883b821ba354e51f95e",
-    "0x00000000009726632680fb29d3f7a9734e3010e2",
     "0x07438f04d1045a2a11f5fce0f7f134caff5cf7c5",
     "0xc52436e43a1ac8e5fe995729bed0a13dd0caebde",
     "0x99e0e808d346d1a5e55623322301fbccc6965ab2",
@@ -182,7 +181,6 @@
     "0xa97a91ed70b8bc8fd202d5e4704ade94e0acb8e0",
     "0xa9cf80843f9c387868097eab249d5ec18966ed9e",
     "0x48e76bbd68d6a56dba886f836150380f18bbb2f3",
-    "0x0a2854fbbd9b3ef66f17d47284e7f899b9509330",
     "0x97b73eaf9ef5942543c0a10a7fb9f5943d571252",
     "0x3013e7459c9206eec66ae1460bbf694883f13ff7",
     "0x032aa839edccb6baca7a8789635bda8eee67ab87",
@@ -406,32 +404,6 @@
       "normal_tx_count": 0,
       "internal_tx_count": 4843,
       "token_tx_count": 6059
-    },
-    {
-      "address": "0x00000000009726632680fb29d3f7a9734e3010e2",
-      "token_count": 5,
-      "tokens": [
-        "MoltX",
-        "STARKBOT",
-        "CLAWNCH",
-        "MOLT",
-        "KellyClaude"
-      ],
-      "total_trades": 52,
-      "eth_received": 431.23889430312084,
-      "eth_sent": 0,
-      "internal_in": 0,
-      "internal_out": 0,
-      "weth_in": 3.7841685704716954,
-      "weth_out": 3.7873924469330564,
-      "gas_spent": 0,
-      "total_in": 435.02306287359255,
-      "total_out": 3.7873924469330564,
-      "net_pnl": 431.2356704266595,
-      "is_profitable": true,
-      "normal_tx_count": 10000,
-      "internal_tx_count": 0,
-      "token_tx_count": 10000
     },
     {
       "address": "0x07438f04d1045a2a11f5fce0f7f134caff5cf7c5",
@@ -4420,30 +4392,6 @@
       "normal_tx_count": 2703,
       "internal_tx_count": 1,
       "token_tx_count": 5074
-    },
-    {
-      "address": "0x0a2854fbbd9b3ef66f17d47284e7f899b9509330",
-      "token_count": 3,
-      "tokens": [
-        "STARKBOT",
-        "MOLT",
-        "MoltX"
-      ],
-      "total_trades": 19,
-      "eth_received": 0.001484296968021395,
-      "eth_sent": 0,
-      "internal_in": 0,
-      "internal_out": 0,
-      "weth_in": 7.621685456972551,
-      "weth_out": 7.621685456972555,
-      "gas_spent": 0,
-      "total_in": 7.623169753940572,
-      "total_out": 7.621685456972555,
-      "net_pnl": 0.001484296968016885,
-      "is_profitable": true,
-      "normal_tx_count": 85,
-      "internal_tx_count": 0,
-      "token_tx_count": 10000
     },
     {
       "address": "0x97b73eaf9ef5942543c0a10a7fb9f5943d571252",

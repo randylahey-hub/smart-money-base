@@ -22,7 +22,7 @@ BASE_RPC_WSS = f"wss://base-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
 # ALERT AYARLARI
 # =============================================================================
 # Kaç cüzdan aynı tokeni almalı ki alert tetiklensin
-ALERT_THRESHOLD = int(os.getenv("ALERT_THRESHOLD", "2"))
+ALERT_THRESHOLD = int(os.getenv("ALERT_THRESHOLD", "3"))
 
 # Maksimum market cap filtresi (USD) - Bunun üstündeki tokenlar alert dışı
 MAX_MCAP = int(os.getenv("MAX_MCAP", "300000"))  # $300K
