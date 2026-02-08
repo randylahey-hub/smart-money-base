@@ -55,6 +55,27 @@ FAKE_ALERT_FLAG_THRESHOLD = int(os.getenv("FAKE_ALERT_FLAG_THRESHOLD", "3"))
 DATA_RETENTION_DAYS = int(os.getenv("DATA_RETENTION_DAYS", "30"))
 
 # =============================================================================
+# SMARTEST WALLET DETECTION
+# =============================================================================
+# Kaç farklı tokende early alım yapmış olmalı (smartest eşik)
+EARLY_BUY_THRESHOLD = int(os.getenv("EARLY_BUY_THRESHOLD", "3"))
+
+# Spray-and-pray filtresi: haftalık max token alımı
+MAX_TOKENS_PER_WEEK = int(os.getenv("MAX_TOKENS_PER_WEEK", "20"))
+
+# Minimum early hit rate (seçicilik oranı) - %15
+MIN_EARLY_HIT_RATE = float(os.getenv("MIN_EARLY_HIT_RATE", "0.15"))
+
+# Early buyer tespiti için geriye bakılacak blok sayısı (~2 saat)
+EARLY_LOOKBACK_BLOCKS = int(os.getenv("EARLY_LOOKBACK_BLOCKS", "3600"))
+
+# Puanlama penceresi (gün)
+WALLET_SCORING_WINDOW_DAYS = int(os.getenv("WALLET_SCORING_WINDOW_DAYS", "30"))
+
+# Hedef smartest wallet sayısı
+SMARTEST_WALLET_TARGET = int(os.getenv("SMARTEST_WALLET_TARGET", "15"))
+
+# =============================================================================
 # DATABASE AYARLARI (Neon PostgreSQL)
 # =============================================================================
 DATABASE_URL = os.getenv("DATABASE_URL", "")  # Neon connection string
@@ -103,7 +124,8 @@ TRANSFER_EVENT_SIGNATURE = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628
 SWAP_SIGNATURES = [
     "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67",  # Uniswap V3
     "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822",  # Uniswap V2
-    "0xb3e2773606abfd36b5bd91394b3a54d1398336c65005baf7f44571de7dacfd46",  # Aerodrome
+    "0xb3e2773606abfd36b5bd91394b3a54d1398336c65005baf7f44571de7dacfd46",  # Aerodrome (classic AMM)
+    "0x40e9cecb9f5f1f1c5b9c97dec2917b7ee92e57ba5563708daca94dd84ad7112f",  # Aerodrome CL/Slipstream (concentrated liquidity)
 ]
 
 # Geriye uyumluluk icin (eski kod referanslari)
