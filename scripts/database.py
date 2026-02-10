@@ -87,8 +87,60 @@ def init_db():
             )
         """)
 
+        # wallet_activity — her cüzdan alımını takip (seçicilik skoru için)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS wallet_activity (
+                id SERIAL PRIMARY KEY,
+                wallet_address VARCHAR(42) NOT NULL,
+                token_address VARCHAR(42) NOT NULL,
+                token_symbol VARCHAR(20),
+                block_number BIGINT,
+                is_early BOOLEAN DEFAULT FALSE,
+                alert_mcap BIGINT DEFAULT 0,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_wa_wallet ON wallet_activity(wallet_address)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_wa_created ON wallet_activity(created_at)")
+
+        # alert_snapshots — alert anındaki MCap/block kaydı
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS alert_snapshots (
+                id SERIAL PRIMARY KEY,
+                token_address VARCHAR(42) NOT NULL,
+                token_symbol VARCHAR(20),
+                alert_mcap BIGINT,
+                alert_block BIGINT,
+                wallet_count INT,
+                first_sm_block BIGINT,
+                early_buyers_found INT DEFAULT 0,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+
+        # token_evaluations tablosu (alert kalite analizi)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS token_evaluations (
+                id SERIAL PRIMARY KEY,
+                token_address VARCHAR(42) NOT NULL,
+                token_symbol VARCHAR(20),
+                alert_mcap BIGINT,
+                mcap_5min BIGINT,
+                mcap_30min BIGINT,
+                change_5min_pct FLOAT,
+                change_30min_pct FLOAT,
+                classification VARCHAR(20),
+                wallets_involved JSONB,
+                alert_time TIMESTAMP,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_te_token ON token_evaluations(token_address)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_te_class ON token_evaluations(classification)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_te_alert_time ON token_evaluations(alert_time)")
+
         cur.close()
-        print(f"✅ Database tabloları hazır ({len(tables)} + trade_signals)")
+        print(f"✅ Database tabloları hazır ({len(tables)} + trade_signals + wallet_activity + alert_snapshots + token_evaluations)")
         return True
 
     except Exception as e:
@@ -379,6 +431,357 @@ def is_duplicate_signal(token_address: str, cooldown_seconds: int = 300) -> bool
     except Exception as e:
         print(f"⚠️ Duplicate signal kontrol hatası: {e}")
         return False
+
+
+# =============================================================================
+# WALLET ACTIVITY (Smartest wallet scorer için)
+# =============================================================================
+
+def save_wallet_activity(wallet_address: str, token_address: str, token_symbol: str,
+                         block_number: int, is_early: bool = False, alert_mcap: int = 0) -> bool:
+    """Cüzdan alım aktivitesini kaydet."""
+    conn = get_connection()
+    if not conn:
+        return False
+    try:
+        cur = conn.cursor()
+        # Aynı cüzdan+token çiftini tekrar ekleme (dedup)
+        cur.execute("""
+            SELECT id FROM wallet_activity
+            WHERE wallet_address = %s AND token_address = %s
+            LIMIT 1
+        """, (wallet_address.lower(), token_address.lower()))
+        if cur.fetchone():
+            # Zaten var, early bilgisini güncelle (false→true olabilir)
+            if is_early:
+                cur.execute("""
+                    UPDATE wallet_activity SET is_early = TRUE, alert_mcap = %s
+                    WHERE wallet_address = %s AND token_address = %s
+                """, (alert_mcap, wallet_address.lower(), token_address.lower()))
+            cur.close()
+            return True
+        cur.execute("""
+            INSERT INTO wallet_activity (wallet_address, token_address, token_symbol, block_number, is_early, alert_mcap)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (wallet_address.lower(), token_address.lower(), token_symbol, block_number, is_early, alert_mcap))
+        cur.close()
+        return True
+    except Exception as e:
+        print(f"⚠️ Wallet activity yazma hatası: {e}")
+        return False
+
+
+def get_wallet_activity_summary(wallet_address: str, days: int = 30) -> dict:
+    """Cüzdanın son N gündeki aktivite özeti."""
+    conn = get_connection()
+    if not conn:
+        return {"unique_tokens": 0, "early_hits": 0, "early_hit_rate": 0.0}
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT
+                COUNT(DISTINCT token_address) as unique_tokens,
+                COUNT(DISTINCT CASE WHEN is_early THEN token_address END) as early_hits
+            FROM wallet_activity
+            WHERE wallet_address = %s AND created_at > NOW() - INTERVAL '%s days'
+        """, (wallet_address.lower(), days))
+        row = cur.fetchone()
+        cur.close()
+        unique = row[0] or 0
+        early = row[1] or 0
+        rate = early / unique if unique > 0 else 0.0
+        return {"unique_tokens": unique, "early_hits": early, "early_hit_rate": round(rate, 3)}
+    except Exception as e:
+        print(f"⚠️ Wallet activity okuma hatası: {e}")
+        return {"unique_tokens": 0, "early_hits": 0, "early_hit_rate": 0.0}
+
+
+def get_weekly_token_count(wallet_address: str) -> int:
+    """Cüzdanın son 7 gündeki benzersiz token alım sayısı."""
+    conn = get_connection()
+    if not conn:
+        return 0
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT COUNT(DISTINCT token_address) FROM wallet_activity
+            WHERE wallet_address = %s AND created_at > NOW() - INTERVAL '7 days'
+        """, (wallet_address.lower(),))
+        count = cur.fetchone()[0] or 0
+        cur.close()
+        return count
+    except Exception as e:
+        return 0
+
+
+def get_all_early_wallets(min_early_count: int = 3, days: int = 30) -> list:
+    """Early buy sayısı eşiği geçen tüm cüzdanları getir."""
+    conn = get_connection()
+    if not conn:
+        return []
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT wallet_address,
+                   COUNT(DISTINCT CASE WHEN is_early THEN token_address END) as early_count,
+                   COUNT(DISTINCT token_address) as total_tokens
+            FROM wallet_activity
+            WHERE created_at > NOW() - INTERVAL '%s days'
+            GROUP BY wallet_address
+            HAVING COUNT(DISTINCT CASE WHEN is_early THEN token_address END) >= %s
+            ORDER BY early_count DESC
+        """, (days, min_early_count))
+        rows = cur.fetchall()
+        cur.close()
+        return [{"wallet": r[0], "early_count": r[1], "total_tokens": r[2]} for r in rows]
+    except Exception as e:
+        print(f"⚠️ Early wallets okuma hatası: {e}")
+        return []
+
+
+def save_alert_snapshot(token_address: str, token_symbol: str, alert_mcap: int,
+                        alert_block: int, wallet_count: int, first_sm_block: int,
+                        early_buyers_found: int = 0) -> bool:
+    """Alert snapshot kaydet."""
+    conn = get_connection()
+    if not conn:
+        return False
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO alert_snapshots (token_address, token_symbol, alert_mcap, alert_block,
+                                         wallet_count, first_sm_block, early_buyers_found)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (token_address.lower(), token_symbol, alert_mcap, alert_block,
+              wallet_count, first_sm_block, early_buyers_found))
+        cur.close()
+        return True
+    except Exception as e:
+        print(f"⚠️ Alert snapshot yazma hatası: {e}")
+        return False
+
+
+# =============================================================================
+# TOKEN EVALUATIONS (Alert kalite analizi için)
+# =============================================================================
+
+def init_token_evaluations():
+    """token_evaluations tablosunu oluştur."""
+    conn = get_connection()
+    if not conn:
+        return False
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS token_evaluations (
+                id SERIAL PRIMARY KEY,
+                token_address VARCHAR(42) NOT NULL,
+                token_symbol VARCHAR(20),
+                alert_mcap BIGINT,
+                mcap_5min BIGINT,
+                mcap_30min BIGINT,
+                change_5min_pct FLOAT,
+                change_30min_pct FLOAT,
+                classification VARCHAR(20),
+                wallets_involved JSONB,
+                alert_time TIMESTAMP,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_te_token ON token_evaluations(token_address)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_te_class ON token_evaluations(classification)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_te_alert_time ON token_evaluations(alert_time)")
+        cur.close()
+        return True
+    except Exception as e:
+        print(f"⚠️ token_evaluations tablo oluşturma hatası: {e}")
+        return False
+
+
+def save_token_evaluation(token_address: str, token_symbol: str, alert_mcap: int,
+                          wallets_involved: list = None, alert_time: str = None,
+                          mcap_5min: int = None, mcap_30min: int = None,
+                          change_5min_pct: float = None, change_30min_pct: float = None,
+                          classification: str = None) -> bool:
+    """Token değerlendirme kaydı oluştur veya güncelle."""
+    conn = get_connection()
+    if not conn:
+        return False
+    try:
+        cur = conn.cursor()
+
+        # Aynı token + alert_time var mı? (güncelleme için)
+        cur.execute("""
+            SELECT id FROM token_evaluations
+            WHERE token_address = %s AND alert_time = %s
+            LIMIT 1
+        """, (token_address.lower(), alert_time))
+        existing = cur.fetchone()
+
+        if existing:
+            # Güncelle (5dk/30dk sonrası MCap gelmiş olabilir)
+            updates = []
+            params = []
+            if mcap_5min is not None:
+                updates.append("mcap_5min = %s")
+                params.append(mcap_5min)
+            if mcap_30min is not None:
+                updates.append("mcap_30min = %s")
+                params.append(mcap_30min)
+            if change_5min_pct is not None:
+                updates.append("change_5min_pct = %s")
+                params.append(change_5min_pct)
+            if change_30min_pct is not None:
+                updates.append("change_30min_pct = %s")
+                params.append(change_30min_pct)
+            if classification is not None:
+                updates.append("classification = %s")
+                params.append(classification)
+            if updates:
+                params.append(existing[0])
+                cur.execute(f"UPDATE token_evaluations SET {', '.join(updates)} WHERE id = %s", params)
+        else:
+            cur.execute("""
+                INSERT INTO token_evaluations
+                    (token_address, token_symbol, alert_mcap, wallets_involved, alert_time,
+                     mcap_5min, mcap_30min, change_5min_pct, change_30min_pct, classification)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (token_address.lower(), token_symbol, alert_mcap,
+                  Json(wallets_involved or []), alert_time,
+                  mcap_5min, mcap_30min, change_5min_pct, change_30min_pct, classification))
+
+        cur.close()
+        return True
+    except Exception as e:
+        print(f"⚠️ Token evaluation yazma hatası: {e}")
+        return False
+
+
+def get_all_token_evaluations() -> list:
+    """Tüm token değerlendirmelerini getir."""
+    conn = get_connection()
+    if not conn:
+        return []
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, token_address, token_symbol, alert_mcap, mcap_5min, mcap_30min,
+                   change_5min_pct, change_30min_pct, classification, wallets_involved, alert_time, created_at
+            FROM token_evaluations ORDER BY alert_time ASC
+        """)
+        rows = cur.fetchall()
+        cur.close()
+        return [{
+            "id": r[0], "token_address": r[1], "token_symbol": r[2],
+            "alert_mcap": r[3], "mcap_5min": r[4], "mcap_30min": r[5],
+            "change_5min_pct": r[6], "change_30min_pct": r[7],
+            "classification": r[8], "wallets_involved": r[9],
+            "alert_time": r[10].isoformat() if r[10] else None,
+            "created_at": r[11].isoformat() if r[11] else None
+        } for r in rows]
+    except Exception as e:
+        print(f"⚠️ Token evaluations okuma hatası: {e}")
+        return []
+
+
+# =============================================================================
+# ALERT SNAPSHOT & TRADE SIGNAL QUERIES (Tarihsel analiz)
+# =============================================================================
+
+def get_all_alert_snapshots() -> list:
+    """Tüm alert snapshot'ları getir (tarihsel analiz için)."""
+    conn = get_connection()
+    if not conn:
+        return []
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, token_address, token_symbol, alert_mcap, alert_block,
+                   wallet_count, first_sm_block, early_buyers_found, created_at
+            FROM alert_snapshots ORDER BY created_at ASC
+        """)
+        rows = cur.fetchall()
+        cur.close()
+        return [{
+            "id": r[0], "token_address": r[1], "token_symbol": r[2],
+            "alert_mcap": r[3], "alert_block": r[4], "wallet_count": r[5],
+            "first_sm_block": r[6], "early_buyers_found": r[7],
+            "created_at": r[8].isoformat() if r[8] else None
+        } for r in rows]
+    except Exception as e:
+        print(f"⚠️ Alert snapshots okuma hatası: {e}")
+        return []
+
+
+def get_all_trade_signals_history() -> list:
+    """Tüm trade signal geçmişini getir."""
+    conn = get_connection()
+    if not conn:
+        return []
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, token_address, token_symbol, entry_mcap, trigger_type,
+                   wallet_count, status, created_at, processed_at, trade_result
+            FROM trade_signals ORDER BY created_at ASC
+        """)
+        rows = cur.fetchall()
+        cur.close()
+        return [{
+            "id": r[0], "token_address": r[1], "token_symbol": r[2],
+            "entry_mcap": r[3], "trigger_type": r[4], "wallet_count": r[5],
+            "status": r[6],
+            "created_at": r[7].isoformat() if r[7] else None,
+            "processed_at": r[8].isoformat() if r[8] else None,
+            "trade_result": r[9]
+        } for r in rows]
+    except Exception as e:
+        print(f"⚠️ Trade signals history okuma hatası: {e}")
+        return []
+
+
+def get_wallet_alert_participation() -> list:
+    """Her cüzdanın hangi alertlere katıldığını getir."""
+    conn = get_connection()
+    if not conn:
+        return []
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT wallet_address, token_address, token_symbol, alert_mcap, created_at
+            FROM wallet_activity
+            ORDER BY wallet_address, created_at ASC
+        """)
+        rows = cur.fetchall()
+        cur.close()
+        return [{
+            "wallet_address": r[0], "token_address": r[1], "token_symbol": r[2],
+            "alert_mcap": r[3],
+            "created_at": r[4].isoformat() if r[4] else None
+        } for r in rows]
+    except Exception as e:
+        print(f"⚠️ Wallet alert participation okuma hatası: {e}")
+        return []
+
+
+def cleanup_old_wallet_activity(days: int = 30) -> int:
+    """Eski wallet activity kayıtlarını temizle."""
+    conn = get_connection()
+    if not conn:
+        return 0
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            DELETE FROM wallet_activity WHERE created_at < NOW() - INTERVAL '%s days'
+        """, (days,))
+        count = cur.rowcount
+        cur.close()
+        if count > 0:
+            print(f"🗑️ {count} eski wallet activity kaydı temizlendi")
+        return count
+    except Exception as e:
+        print(f"⚠️ Cleanup hatası: {e}")
+        return 0
 
 
 # =============================================================================

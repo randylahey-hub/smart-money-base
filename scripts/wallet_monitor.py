@@ -46,8 +46,10 @@ from scripts.early_detector import (
 )
 from scripts.virtual_trader import get_trader
 from scripts.daily_report import check_and_send_if_time
+from scripts.tx_classifier import classify_transaction
 from scripts.fake_alert_tracker import record_fake_alert, is_flagged_wallet
-from scripts.database import init_db, is_db_available, save_trade_signal, is_duplicate_signal
+from scripts.database import init_db, is_db_available, save_trade_signal, is_duplicate_signal, save_wallet_activity
+from scripts.wallet_scorer import process_alert_v2, record_wallet_activity
 
 # Flush için
 sys.stdout.reconfigure(line_buffering=True)
@@ -251,6 +253,13 @@ class SmartMoneyMonitor:
                 print(f"⚠️ Swap doğrulama hatası: {e}")
                 return
 
+            # === AIRDROP / MULTICALL / BATCH TRANSFER FİLTRESİ ===
+            # Basescan Action sütunundaki hareket tiplerini kontrol et
+            tx_class = classify_transaction(tx_hash, receipt, self.w3)
+            if tx_class["skip"]:
+                print(f"⏭️  Skip: {token_address[:10]}... → {to_address[:10]}... | {tx_class['type']}: {tx_class['reason']}")
+                return
+
             # Token bilgisini al (sembol kontrolü için)
             token_info = get_token_info_dexscreener(token_address)
             token_symbol = token_info.get('symbol', 'UNKNOWN')
@@ -307,6 +316,19 @@ class SmartMoneyMonitor:
             )
 
             print(f"📥 Alım: {to_address[:10]}... → {token_symbol} | {eth_amount:.3f} ETH | MCap: ${current_mcap/1e6:.2f}M")
+
+            # === WALLET ACTIVITY KAYDI (Smartest wallet scorer için) ===
+            try:
+                record_wallet_activity(
+                    wallet_address=to_address,
+                    token_address=token_address,
+                    token_symbol=token_symbol,
+                    block_number=log.get('blockNumber', 0),
+                    is_early=False,
+                    alert_mcap=int(current_mcap)
+                )
+            except Exception as e:
+                print(f"⚠️ Wallet activity kayıt hatası: {e}")
 
             # === SMARTEST WALLET CHECK - Senaryo 2 ===
             try:
@@ -427,9 +449,9 @@ class SmartMoneyMonitor:
                 }
                 print(f"✅ Alert gönderildi: {token_info.get('symbol', token_address[:10])}")
 
-                # === EARLY DETECTION ===
+                # === EARLY DETECTION (v2 - wallet scorer entegrasyonu) ===
                 try:
-                    process_alert_for_early_detection(
+                    process_alert_v2(
                         token_address=token_address,
                         token_symbol=token_info.get('symbol', 'UNKNOWN'),
                         smart_money_purchases=wallet_purchases,
@@ -437,7 +459,18 @@ class SmartMoneyMonitor:
                         current_block=self.w3.eth.block_number
                     )
                 except Exception as e:
-                    print(f"⚠️ Early detection hatası: {e}")
+                    print(f"⚠️ Early detection v2 hatası: {e}")
+                    # Fallback: eski sistemi dene
+                    try:
+                        process_alert_for_early_detection(
+                            token_address=token_address,
+                            token_symbol=token_info.get('symbol', 'UNKNOWN'),
+                            smart_money_purchases=wallet_purchases,
+                            smart_money_wallets=self.wallets_set,
+                            current_block=self.w3.eth.block_number
+                        )
+                    except Exception as e2:
+                        print(f"⚠️ Early detection fallback hatası: {e2}")
 
                 # === VIRTUAL TRADING - Senaryo 1 ===
                 try:
@@ -457,6 +490,18 @@ class SmartMoneyMonitor:
                         save_trade_signal(token_address, token_info.get('symbol', 'UNKNOWN'), current_mcap, "scenario_1", len(unique_wallets))
                 except Exception as e:
                     print(f"⚠️ Trade signal S1 hatası: {e}")
+
+                # === SELF-IMPROVING ENGINE: MCap Timer ===
+                try:
+                    from scripts.self_improving_engine import run_per_alert_check
+                    run_per_alert_check(
+                        token_address=token_address,
+                        token_symbol=token_info.get('symbol', 'UNKNOWN'),
+                        alert_mcap=int(current_mcap),
+                        wallets_involved=[p[0] for p in wallet_purchases]
+                    )
+                except Exception as e:
+                    print(f"⚠️ Self-improving MCap timer hatası: {e}")
             else:
                 print(f"❌ Alert gönderilemedi!")
 
@@ -493,7 +538,8 @@ class SmartMoneyMonitor:
             f"• Bullish Alert: {BULLISH_WINDOW//60}dk pencere\n"
             f"• Virtual Trading: Aktif (0.5 ETH)\n"
             f"• 📡 Trade Signals: DB (ayrı bot)\n"
-            f"• Daily Report: 23:30"
+            f"• Daily Report: 20:30\n"
+            f"• Self-Improving: {'Aktif' if os.getenv('SELF_IMPROVE_ENABLED', 'false').lower() == 'true' else 'Kapalı'}"
         )
 
         # Polling başlat
@@ -526,11 +572,23 @@ class SmartMoneyMonitor:
                     if block_count % 50 == 0:
                         print(f"📊 {block_count} blok işlendi | {transfer_count} smart money transfer")
 
-                        # Günlük rapor kontrolü (23:30)
+                        # Günlük rapor kontrolü (20:30)
                         try:
                             check_and_send_if_time()
                         except Exception as e:
                             print(f"⚠️ Daily report hatası: {e}")
+
+                        # Self-improving engine: Bekleyen MCap check'leri
+                        try:
+                            from scripts.mcap_checker import process_pending_checks, get_pending_count
+                            pending = get_pending_count()
+                            if pending > 0:
+                                results = process_pending_checks()
+                                if results:
+                                    print(f"📈 MCap check: {len(results)} token kontrol edildi ({pending - get_pending_count()} kalan)")
+                        except Exception as e:
+                            if "No module" not in str(e):
+                                print(f"⚠️ MCap checker hatası: {e}")
 
                     last_block = current_block
 

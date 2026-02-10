@@ -139,3 +139,28 @@ TRADING_PRIVATE_KEY = os.getenv("TRADING_PRIVATE_KEY", "")
 
 # Gerçek trading açık/kapalı (kill switch)
 REAL_TRADING_ENABLED = os.getenv("REAL_TRADING_ENABLED", "false").lower() == "true"
+
+# =============================================================================
+# SELF-IMPROVING ENGINE AYARLARI
+# =============================================================================
+# Self-improving engine açık/kapalı (kill switch)
+SELF_IMPROVE_ENABLED = os.getenv("SELF_IMPROVE_ENABLED", "false").lower() == "true"
+
+# Alert kalite eşikleri
+SHORT_LIST_THRESHOLD = float(os.getenv("SHORT_LIST_THRESHOLD", "0.20"))  # %20 artış
+CONTRACTS_CHECK_THRESHOLD = float(os.getenv("CONTRACTS_CHECK_THRESHOLD", "0.50"))  # %50 artış
+DEAD_TOKEN_MCAP = int(os.getenv("DEAD_TOKEN_MCAP", "20000"))  # $20K altı = ölü token
+
+# Cüzdan değerlendirme eşikleri
+TRASH_WARN_THRESHOLD = float(os.getenv("TRASH_WARN_THRESHOLD", "0.70"))  # %70 trash → uyarı
+TRASH_REMOVE_THRESHOLD = float(os.getenv("TRASH_REMOVE_THRESHOLD", "0.90"))  # %90 trash → çıkarma
+MIN_APPEARANCES_FOR_REMOVAL = int(os.getenv("MIN_APPEARANCES_FOR_REMOVAL", "5"))
+
+# Cüzdan keşif filtreleri
+DISCOVER_MIN_BUY_USD = int(os.getenv("DISCOVER_MIN_BUY_USD", "50"))  # Min $50 alım
+DISCOVER_ACCOUNT_MIN_AGE = int(os.getenv("DISCOVER_ACCOUNT_MIN_AGE", "100"))  # 100 gün
+DISCOVER_WEEKLY_TOKEN_LIMIT = int(os.getenv("DISCOVER_WEEKLY_TOKEN_LIMIT", "80"))
+NEW_WALLET_WEEKLY_LIMIT = int(os.getenv("NEW_WALLET_WEEKLY_LIMIT", "80"))
+
+# Basescan API Key (merkezi)
+ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY", "6TE7PX7TDS777Z3T7NQCZVUK4KBK9HHDJQ")

@@ -1,6 +1,6 @@
 """
 Daily Report System
-Her gün 23:30'da Telegram'a günlük PnL raporu gönderir.
+Her gün 20:30'da Telegram'a günlük PnL raporu gönderir.
 """
 
 import sys
@@ -16,7 +16,7 @@ from scripts.data_cleanup import run_full_cleanup
 from scripts.fake_alert_tracker import load_fake_alerts
 
 # Rapor saati (Türkiye saati UTC+3)
-REPORT_HOUR = 23
+REPORT_HOUR = 20
 REPORT_MINUTE = 30
 
 
@@ -96,6 +96,15 @@ def generate_daily_report() -> str:
 🚩 <b>Fake Alert:</b> {fake_total_alerts} tespit | {fake_flagged_count} cüzdan flagli
 """
 
+    # Self-improving engine cüzdan durumu
+    try:
+        from scripts.wallet_evaluator import get_daily_wallet_report_summary
+        wallet_summary = get_daily_wallet_report_summary()
+        if wallet_summary:
+            report += "\n\n" + wallet_summary
+    except Exception:
+        pass
+
     return report.strip()
 
 
@@ -122,12 +131,21 @@ def send_daily_report() -> bool:
     except Exception as e:
         print(f"⚠️ Cleanup hatası: {e}")
 
+    # Self-improving engine günlük değerlendirme
+    try:
+        from scripts.self_improving_engine import run_daily_evaluation, SELF_IMPROVE_ENABLED
+        if SELF_IMPROVE_ENABLED:
+            print("\n🔄 Self-improving engine günlük değerlendirme...")
+            run_daily_evaluation()
+    except Exception as e:
+        print(f"⚠️ Self-improving engine hatası: {e}")
+
     return success
 
 
 async def schedule_daily_report():
     """
-    Her gün 23:30'da rapor gönder.
+    Her gün 20:30'da rapor gönder.
     Bu fonksiyon ana monitor ile birlikte çalışır.
     """
     while True:
@@ -157,7 +175,7 @@ def check_and_send_if_time():
     """
     now = datetime.now()
 
-    # 23:30-23:35 arası mı?
+    # 20:30-20:35 arası mı?
     if now.hour == REPORT_HOUR and REPORT_MINUTE <= now.minute < REPORT_MINUTE + 5:
         # Bugün zaten gönderildi mi kontrol et
         trader = get_trader()
