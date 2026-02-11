@@ -95,15 +95,18 @@ UNISWAP_UNIVERSAL_ROUTER = "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD"
 # =============================================================================
 EXCLUDED_TOKENS = [
     "0x4200000000000000000000000000000000000006",  # WETH
-    "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",  # USDC
+    "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",  # USDC (native)
+    "0xEB466342C4d449BC9f53A865D5Cb90586f405215",  # axlUSDC (Axelar)
+    "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",  # USDbC (bridged USDC)
     "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",  # USDT
     "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",  # DAI
     "0x4200000000000000000000000000000000000042",  # OP (Optimism token)
     "0x0000000000000000000000000000000000000000",  # Native ETH placeholder
+    "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf",  # cbBTC (Coinbase Wrapped BTC)
 ]
 
 # Excluded token sembolleri (büyük/küçük harf duyarsız)
-EXCLUDED_SYMBOLS = ["WETH", "USDC", "USDT", "DAI", "ETH"]
+EXCLUDED_SYMBOLS = ["WETH", "USDC", "USDT", "DAI", "ETH", "AXLUSDC", "USDBC", "CBBTC"]
 
 # =============================================================================
 # İZLEME AYARLARI

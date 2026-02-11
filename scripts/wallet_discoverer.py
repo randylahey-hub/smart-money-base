@@ -38,6 +38,25 @@ WEEKLY_TOKEN_LIMIT = 80      # Haftalık max farklı token
 BOT_RAPID_BUY_THRESHOLD = 5  # 1 saatte 5+ farklı token = bot
 MAX_FIRST_BUYERS = 30        # Her token için max ilk alıcı kontrolü
 NEW_WALLET_WEEKLY_LIMIT = 80  # Haftada max yeni cüzdan ekleme
+MAX_DAILY_TX_COUNT = 200     # Günde 200+ tx = bot
+
+# Bilinen adresler blocklist (burn, dead, null, router, protokol)
+BLOCKED_ADDRESSES = {
+    "0x0000000000000000000000000000000000000000",  # Null
+    "0x0000000000000000000000000000000000000001",  # Null
+    "0x000000000000000000000000000000000000dead",  # Burn
+    "0x0000000000000000000000000000000000000dead",  # Burn variant
+    "0x2626664c2603336e57b271c5c0b26f421741e481",  # Uniswap V2 Router
+    "0xcf77a3ba9a5ca399b7c97c74d54e5b1beb874e43",  # Aerodrome Router
+    "0x6131b5fae19ea4f9d964eac0408e4408b66337b5",  # BaseSwap Router
+    "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad",  # Uniswap Universal Router
+    "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",  # Uniswap V2 Router (Base)
+    "0x327df1e6de05895d2ab08513aadd9313fe505d86",  # BaseSwap V2
+    "0x1111111254eeb25477b68fb85ed929f73a960582",  # 1inch Router
+    "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",  # USDC
+    "0x4200000000000000000000000000000000000006",  # WETH
+    "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf",  # cbBTC
+}
 
 # Web3 bağlantısı
 w3 = Web3(Web3.HTTPProvider(BASE_RPC_HTTP))
@@ -218,6 +237,35 @@ def count_recent_tokens(address: str, hours: int = 1) -> int:
     return len(recent_tokens)
 
 
+def count_daily_transactions(address: str) -> int:
+    """Son 24 saatteki toplam işlem sayısını kontrol et."""
+    params = {
+        'chainid': BASE_CHAIN_ID,
+        'module': 'account',
+        'action': 'txlist',
+        'address': address,
+        'startblock': 0,
+        'endblock': 99999999,
+        'sort': 'desc',
+        'page': 1,
+        'offset': 200,
+        'apikey': ETHERSCAN_API_KEY,
+    }
+
+    data = _fetch_with_retry(params)
+    txs = data.get("result", [])
+    time.sleep(BASESCAN_DELAY)
+
+    if not isinstance(txs, list):
+        return 0
+
+    now_ts = int(datetime.now(timezone.utc).timestamp())
+    cutoff_ts = now_ts - (24 * 3600)
+
+    count = sum(1 for tx in txs if int(tx.get("timeStamp", 0)) >= cutoff_ts)
+    return count
+
+
 def is_organic_buyer(address: str, buy_value_usd: float = 0) -> dict:
     """
     Organik alıcı kontrolü.
@@ -226,6 +274,10 @@ def is_organic_buyer(address: str, buy_value_usd: float = 0) -> dict:
         {"organic": bool, "reject_reason": str or None, "details": dict}
     """
     details = {}
+
+    # 0. Blocklist kontrolü
+    if address.lower() in BLOCKED_ADDRESSES:
+        return {"organic": False, "reject_reason": "Blocklist (burn/null/router)", "details": details}
 
     # 1. Min alım değeri (0 = bilinmiyor, atla)
     if buy_value_usd > 0 and buy_value_usd < MIN_BUY_VALUE_USD:
@@ -246,6 +298,12 @@ def is_organic_buyer(address: str, buy_value_usd: float = 0) -> dict:
     details["recent_tokens_1h"] = recent
     if recent >= BOT_RAPID_BUY_THRESHOLD:
         return {"organic": False, "reject_reason": f"Bot pattern: 1 saatte {recent} farklı token", "details": details}
+
+    # 5. Günlük işlem sayısı (aşırı aktif = bot)
+    daily_tx = count_daily_transactions(address)
+    details["daily_tx_count"] = daily_tx
+    if daily_tx >= MAX_DAILY_TX_COUNT:
+        return {"organic": False, "reject_reason": f"Aşırı aktif: {daily_tx} tx/gün >= {MAX_DAILY_TX_COUNT}", "details": details}
 
     return {"organic": True, "reject_reason": None, "details": details}
 

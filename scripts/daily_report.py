@@ -175,6 +175,14 @@ def send_daily_report() -> bool:
     except Exception as e:
         print(f"⚠️ Self-improving engine hatası: {e}")
 
+    # Smartest wallet günlük yenileme
+    try:
+        from scripts.wallet_scorer import daily_refresh
+        print("\n🔄 Smartest wallet günlük yenileme...")
+        daily_refresh()
+    except Exception as e:
+        print(f"⚠️ Smartest wallet refresh hatası: {e}")
+
     return success
 
 
