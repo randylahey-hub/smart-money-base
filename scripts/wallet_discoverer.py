@@ -227,8 +227,8 @@ def is_organic_buyer(address: str, buy_value_usd: float = 0) -> dict:
     """
     details = {}
 
-    # 1. Min alım değeri
-    if buy_value_usd < MIN_BUY_VALUE_USD:
+    # 1. Min alım değeri (0 = bilinmiyor, atla)
+    if buy_value_usd > 0 and buy_value_usd < MIN_BUY_VALUE_USD:
         return {"organic": False, "reject_reason": f"Düşük alım: ${buy_value_usd:.2f} < ${MIN_BUY_VALUE_USD}", "details": details}
 
     # 2. EOA kontrolü
@@ -289,15 +289,26 @@ def discover_new_wallets(contracts_check_tokens: list = None) -> dict:
         wallet_data = json.load(f)
     existing_wallets = set(w.lower() for w in wallet_data.get("wallets", []))
 
+    # Duplicate tokenları çıkar (unique token bazında işle)
+    seen_tokens = set()
+    unique_tokens = []
+    for token in contracts_check_tokens:
+        addr = token["token_address"].lower()
+        if addr not in seen_tokens:
+            seen_tokens.add(addr)
+            unique_tokens.append(token)
+
+    print(f"📋 {len(contracts_check_tokens)} entry → {len(unique_tokens)} unique token")
+
     # Her token için ilk alıcıları bul
     all_candidates = []
     rejected = []
 
-    for i, token in enumerate(contracts_check_tokens):
+    for i, token in enumerate(unique_tokens):
         token_addr = token["token_address"]
         token_symbol = token.get("token_symbol", "UNKNOWN")
 
-        print(f"\n[{i+1}/{len(contracts_check_tokens)}] {token_symbol} ({token_addr[:10]}...)")
+        print(f"\n[{i+1}/{len(unique_tokens)}] {token_symbol} ({token_addr[:10]}...)")
 
         # İlk alıcıları bul
         first_buyers = find_first_buyers(token_addr)
@@ -357,7 +368,7 @@ def discover_new_wallets(contracts_check_tokens: list = None) -> dict:
     # Sonuçları kaydet
     result = {
         "discovery_time": datetime.now(UTC_PLUS_3).isoformat(),
-        "tokens_checked": len(contracts_check_tokens),
+        "tokens_checked": len(unique_tokens),
         "discovered": len(all_candidates),
         "added": added_count,
         "rejected": len(rejected),
@@ -368,7 +379,7 @@ def discover_new_wallets(contracts_check_tokens: list = None) -> dict:
     _save_json("discovered_wallets.json", result)
 
     print(f"\n📊 Keşif Sonuçları:")
-    print(f"  Token tarandı: {len(contracts_check_tokens)}")
+    print(f"  Token tarandı: {len(unique_tokens)}")
     print(f"  Aday bulundu: {len(all_candidates)}")
     print(f"  Eklendi: {added_count}")
     print(f"  Reddedildi: {len(rejected)}")
