@@ -330,18 +330,18 @@ class SmartMoneyMonitor:
             except Exception as e:
                 print(f"⚠️ Wallet activity kayıt hatası: {e}")
 
-            # === SMARTEST WALLET CHECK - Senaryo 2 ===
-            try:
-                if is_smartest_wallet(to_address):
-                    print(f"🧠 SMARTEST WALLET alım yaptı: {to_address[:10]}... → {token_symbol}")
-                    trader = get_trader()
-                    trader.buy_token_scenario2(
-                        token_address=token_address,
-                        token_symbol=token_symbol,
-                        entry_mcap=current_mcap
-                    )
-            except Exception as e:
-                print(f"⚠️ Virtual trade S2 hatası: {e}")
+            # === SMARTEST WALLET CHECK - Senaryo 2 (Virtual trading devre dışı) ===
+            # try:
+            #     if is_smartest_wallet(to_address):
+            #         print(f"🧠 SMARTEST WALLET alım yaptı: {to_address[:10]}... → {token_symbol}")
+            #         trader = get_trader()
+            #         trader.buy_token_scenario2(
+            #             token_address=token_address,
+            #             token_symbol=token_symbol,
+            #             entry_mcap=current_mcap
+            #         )
+            # except Exception as e:
+            #     print(f"⚠️ Virtual trade S2 hatası: {e}")
 
             # === TRADE SIGNAL - Senaryo 2 (Smartest Wallet) ===
             try:
@@ -472,17 +472,17 @@ class SmartMoneyMonitor:
                     except Exception as e2:
                         print(f"⚠️ Early detection fallback hatası: {e2}")
 
-                # === VIRTUAL TRADING - Senaryo 1 ===
-                try:
-                    trader = get_trader()
-                    current_mcap = token_info.get('mcap', 0)
-                    trader.buy_token_scenario1(
-                        token_address=token_address,
-                        token_symbol=token_info.get('symbol', 'UNKNOWN'),
-                        entry_mcap=current_mcap
-                    )
-                except Exception as e:
-                    print(f"⚠️ Virtual trade S1 hatası: {e}")
+                # === VIRTUAL TRADING - Senaryo 1 (Devre dışı) ===
+                # try:
+                #     trader = get_trader()
+                #     current_mcap = token_info.get('mcap', 0)
+                #     trader.buy_token_scenario1(
+                #         token_address=token_address,
+                #         token_symbol=token_info.get('symbol', 'UNKNOWN'),
+                #         entry_mcap=current_mcap
+                #     )
+                # except Exception as e:
+                #     print(f"⚠️ Virtual trade S1 hatası: {e}")
 
                 # === TRADE SIGNAL - Senaryo 1 (Smart Money Alert) ===
                 try:
