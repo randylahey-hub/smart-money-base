@@ -25,7 +25,7 @@ BASE_RPC_WSS = f"wss://base-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
 ALERT_THRESHOLD = int(os.getenv("ALERT_THRESHOLD", "3"))
 
 # Maksimum market cap filtresi (USD) - Bunun üstündeki tokenlar alert dışı
-MAX_MCAP = int(os.getenv("MAX_MCAP", "300000"))  # $300K
+MAX_MCAP = int(os.getenv("MAX_MCAP", "700000"))  # $700K
 
 # Zaman penceresi (saniye) - Bu süre içinde alımlar olmalı
 TIME_WINDOW = int(os.getenv("TIME_WINDOW", "20"))

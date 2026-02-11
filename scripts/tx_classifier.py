@@ -135,24 +135,18 @@ def classify_transaction(tx_hash, receipt, w3) -> dict:
             }
 
         # 6. Log pattern analizi (selector tanınmasa bile)
+        # Swap doğrulaması (wallet_monitor'da) zaten meşru alımları doğruluyor.
+        # Burada sadece çok yüksek unique alıcı sayısı olan (gerçek airdrop) durumları filtrele.
         transfer_count = _count_transfer_logs(receipt)
+        unique_recipients = _count_unique_recipients(receipt)
 
-        if transfer_count >= AIRDROP_LOG_THRESHOLD:
+        # Gerçek airdrop: 20+ log VE 10+ farklı alıcı (çok sayıda kişiye dağıtım)
+        if transfer_count >= AIRDROP_LOG_THRESHOLD and unique_recipients >= 10:
             return {
                 "type": "airdrop",
                 "skip": True,
-                "reason": f"Aşırı yüksek Transfer log sayısı: {transfer_count} (airdrop pattern)"
+                "reason": f"Airdrop pattern: {transfer_count} log, {unique_recipients} farklı alıcı"
             }
-
-        if transfer_count >= BATCH_LOG_THRESHOLD:
-            # 10-19 arası log: unique recipient sayısına bak
-            unique_recipients = _count_unique_recipients(receipt)
-            if unique_recipients >= 5:
-                return {
-                    "type": "batch_transfer",
-                    "skip": True,
-                    "reason": f"{transfer_count} log, {unique_recipients} farklı alıcı (batch transfer)"
-                }
 
         # 7. Hepsi geçti → normal swap
         return {
