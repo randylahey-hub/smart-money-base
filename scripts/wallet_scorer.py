@@ -301,7 +301,8 @@ def process_alert_v2(
         )
         print(f"  🔍 Early: {buyer['wallet'][:10]}... @ blok {buyer['block']}")
 
-    # Alert snapshot kaydet
+    # Alert snapshot kaydet (wallet listesi dahil)
+    wallets_list = [p[0] for p in smart_money_purchases]  # (wallet, eth_amount, mcap)
     save_alert_snapshot(
         token_address=token_address,
         token_symbol=token_symbol,
@@ -310,6 +311,7 @@ def process_alert_v2(
         wallet_count=len(smart_money_purchases),
         first_sm_block=first_sm_block,
         early_buyers_found=len(early_buyers),
+        wallets_involved=wallets_list,
     )
 
     # Smartest wallets güncelle

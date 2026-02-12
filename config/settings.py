@@ -54,6 +54,11 @@ FAKE_ALERT_FLAG_THRESHOLD = int(os.getenv("FAKE_ALERT_FLAG_THRESHOLD", "3"))
 # Data retention (gün) - Bu süreden eski veriler temizlenir
 DATA_RETENTION_DAYS = int(os.getenv("DATA_RETENTION_DAYS", "30"))
 
+# Blackout saatleri (UTC+3) - Bu saatlerde alert gönderilmez (%0 başarı oranı olan saatler)
+# Virgülle ayrılmış saat listesi: "2,4,16,20,21"
+BLACKOUT_HOURS_STR = os.getenv("BLACKOUT_HOURS", "2,4,16,20,21")
+BLACKOUT_HOURS = [int(h.strip()) for h in BLACKOUT_HOURS_STR.split(",") if h.strip()]
+
 # =============================================================================
 # SMARTEST WALLET DETECTION
 # =============================================================================

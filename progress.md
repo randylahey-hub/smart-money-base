@@ -1,90 +1,112 @@
 # Smart Money Base - İlerleme Durumu
 
 **Proje Başlangıç:** 2026-02-03
-**Son Güncelleme:** 2026-02-04 22:30
-**Durum:** 🔄 AKTİF - 384 cüzdan ETH P&L analizi devam ediyor
+**Son Güncelleme:** 2026-02-12
+**Durum:** 🟢 CANLI - Koyeb'de çalışıyor ($2.68/ay)
 
 ---
 
-## Mevcut Durum
+## Sistem Durumu
+
+| Bileşen | Durum |
+|---------|-------|
+| Wallet Monitor v2.1 | ✅ Koyeb'de aktif |
+| Telegram Alertleri | ✅ Çalışıyor |
+| Early Detection | ✅ Entegre |
+| Virtual Trading | ⏸️ Devre dışı |
+| Daily Report (20:30) | ✅ Entegre |
+| Fake Alert Tracker | ✅ Aktif |
+| Data Cleanup | ✅ Otomatik |
+| Blackout Saatleri | ✅ YENİ - 02,04,16,20,21 UTC+3 |
+| Wallet-Alert Eşleştirme | ✅ YENİ - DB + JSON |
+
+## Alert Ayarları
+
+| Parametre | Değer |
+|-----------|-------|
+| İzlenen cüzdan | 228 |
+| Alert eşiği | 3 cüzdan |
+| Zaman penceresi | 20 saniye |
+| Max MCap | $700K |
+| Min 24s Hacim | $10,000 |
+| Min 24s İşlem | 15 |
+| Min Likidite | $5,000 |
+| Alert cooldown | 5 dakika |
+| Blackout Saatleri | 02:00, 04:00, 16:00, 20:00, 21:00 UTC+3 |
+
+---
+
+## Tamamlanan Fazlar
 
 | Faz | Durum | İlerleme |
 |-----|-------|----------|
 | Faz 1: Token Filtreleme | ✅ Tamamlandı | 100% |
 | Faz 2: Cüzdan Ayıklama | ✅ Tamamlandı | 100% (7 token) |
 | Faz 3: Bot Filtreleme | ✅ Tamamlandı | 100% (384 cüzdan) |
-| Faz 4: ETH Kar/Zarar Analizi | 🔄 Devam Ediyor | ~10% |
-| Faz 5: Final Liste | ⏳ Bekliyor | 0% |
+| Faz 4: ETH Kar/Zarar Analizi | ✅ Tamamlandı | 100% (190 smart money) |
+| Faz 5: Final Liste | ✅ Tamamlandı | 228 cüzdan |
+| Faz 6: Telegram Bot | ✅ Tamamlandı | Koyeb deployment |
+| Faz 7: Early Detection | ✅ Tamamlandı | Entegre |
+| Faz 8: Virtual Trading | ✅ Tamamlandı | Devre dışı |
+| Faz 9: Daily Report | ✅ Tamamlandı | 20:30 Telegram |
+| Faz 10: Fake Alert Filtre | ✅ Tamamlandı | Min $10K hacim |
+| Faz 11: Data Cleanup | ✅ Tamamlandı | 30 gün retention |
+| Faz 12: Blackout & Wallet Tracking | ✅ Tamamlandı | 5 saat blackout + wallet eşleştirme |
 
 ---
 
-## ÖNCELİKLİ CÜZDAN ANALİZİ TAMAMLANDI! ✅
+## Son Yapılan Değişiklikler (2026-02-12)
 
-**31 cüzdan (5+4 token) analiz edildi:**
+### Blackout Saatleri
+- 02:00, 04:00, 16:00, 20:00, 21:00 UTC+3 saatlerinde alert gönderilmez
+- Bu saatlerde %0 başarı oranı tespit edilmişti → trash alertleri ~%19 azalır
+- Env variable ile yapılandırılabilir: `BLACKOUT_HOURS=2,4,16,20,21`
 
-| Metrik | Değer |
-|--------|-------|
-| Toplam | 31 |
-| ✅ Karlı | 19 (%61) |
-| ❌ Zararlı | 12 (%39) |
+### Wallet-Alert Eşleştirmesi
+- Alert snapshot'lara `wallets_involved` sütunu eklendi (DB migration dahil)
+- Her alert'te hangi cüzdanların yer aldığı artık kaydediliyor
+- trash_calls, short_list, contracts_check JSON'larına wallet bilgisi eklendi
+- `get_wallet_participation_from_snapshots()` yeni fonksiyon eklendi
+- Bu sayede "hangi cüzdan sürekli çöp üretir" sorusuna cevap verilebilir
 
-### TOP 10 KARLI CÜZDAN
-
-| # | Adres | Token | Net P&L (ETH) |
-|---|-------|-------|---------------|
-| 1 | 0xc51b211fe1f479... | 5 | **+1,202.41** |
-| 2 | 0xb878a06dde8e7e... | 4 | **+781.59** |
-| 3 | 0x6c8c3784151932... | 4 | **+518.58** |
-| 4 | 0x07438f04d1045a... | 4 | **+447.43** |
-| 5 | 0xafa8dff3da05e3... | 5 | **+352.39** |
-| 6 | 0x4409921ae43a39... | 5 | **+250.84** |
-| 7 | 0xb300000b72deae... | 5 | **+159.16** |
-| 8 | 0xc2f5f219b8e429... | 4 | **+102.67** |
-| 9 | 0x568dc476b4af66... | 4 | **+98.41** |
-| 10 | 0x8f43762f7ebe39... | 5 | **+54.05** |
+### Count Tutarsızlığı Düzeltmesi
+- `smart_money_final.json` count alanı 242 → 228 düzeltildi (gerçek cüzdan sayısı)
 
 ---
 
-## Devam Eden İşlem
-
-**384 cüzdan için full ETH P&L analizi:**
-- Task ID: bffe837
-- Tahmini süre: ~1-2 saat (API rate limit nedeniyle)
-- Checkpoint sistemi aktif (her 20 cüzdanda kayıt)
-
----
-
-## Token Listesi (7 token)
-
-| Token | MCap | Volume |
-|-------|------|--------|
-| MOLT | $27.36M | $7.12M |
-| CLAWNCH | $9.82M | $5.26M |
-| KellyClaude | $7.13M | $5.13M |
-| MoltX | $1.68M | $3.72M |
-| STARKBOT | $2.39M | $2.15M |
-| CLAWSTR | $11.13M | $12.87M |
-| CLAWD | $10.23M | $6.15M |
-
----
-
-## Önemli Dosyalar
+## Dosya Yapısı
 
 | Dosya | Açıklama |
 |-------|----------|
-| `data/tokens_extended.json` | 7 token listesi |
-| `data/wallets_filtered_no_bots.json` | 384 bot-filtered cüzdan |
-| `data/wallets_priority_pnl.json` | 31 öncelikli cüzdan P&L sonuçları |
-| `data/wallets_eth_pnl.json` | 384 cüzdan P&L sonuçları (oluşturulacak) |
+| `scripts/wallet_monitor.py` | Ana monitor v2.1 (blackout + wallet tracking) |
+| `scripts/telegram_alert.py` | Alert sistemi |
+| `scripts/early_detector.py` | Early smart money tespiti |
+| `scripts/wallet_scorer.py` | Smartest wallet puanlama |
+| `scripts/alert_analyzer.py` | Alert analizi (wallet bilgisi eklendi) |
+| `scripts/database.py` | DB yönetimi (wallets_involved migration) |
+| `scripts/daily_report.py` | Günlük rapor + cleanup trigger |
+| `scripts/fake_alert_tracker.py` | Fake alert flagleme |
+| `scripts/data_cleanup.py` | Otomatik veri temizleme |
+| `scripts/self_improving_engine.py` | Orkestrasyon motoru |
+| `config/settings.py` | Tüm ayarlar (blackout saatleri eklendi) |
+| `data/smart_money_final.json` | 228 cüzdan listesi |
+
+---
+
+## Koyeb Deployment
+
+| Bilgi | Değer |
+|-------|-------|
+| Plan | Starter |
+| Instance | Nano (1 vCPU shared, 256MB RAM) |
+| Tahmini maliyet | ~$2.68/ay |
+| Auto-deploy | GitHub push ile otomatik |
 
 ---
 
 ## Sonraki Adımlar
 
-1. **384 cüzdan analizinin tamamlanmasını bekle**
-2. **Net P&L > 0 olan cüzdanları filtrele**
-3. **Keskin kriterler uygula:**
-   - Net P&L > 1 ETH (minimum kar)
-   - 5 dakika içinde çıkış yapanları ele
-4. **Final smart money listesi oluştur**
-5. **Telegram bot entegrasyonu**
+1. 🔄 Cielo Finance API entegrasyonu — kaliteli cüzdan keşfi (API key bekleniyor)
+2. 📊 Wallet-trash eşleştirme verisi biriktikçe temizlik yapma
+3. 🧠 Smartest wallets listesi dolunca performans karşılaştırması
+4. 📈 Mevcut cüzdan listesinden düşük performanslıları çıkarma

@@ -114,9 +114,17 @@ def init_db():
                 wallet_count INT,
                 first_sm_block BIGINT,
                 early_buyers_found INT DEFAULT 0,
+                wallets_involved TEXT DEFAULT '',
                 created_at TIMESTAMP DEFAULT NOW()
             )
         """)
+        # wallets_involved sütunu yoksa ekle (mevcut tablolar için migration)
+        try:
+            cur.execute("""
+                ALTER TABLE alert_snapshots ADD COLUMN IF NOT EXISTS wallets_involved TEXT DEFAULT ''
+            """)
+        except Exception:
+            pass
 
         # token_evaluations tablosu (alert kalite analizi)
         cur.execute("""
@@ -541,19 +549,20 @@ def get_all_early_wallets(min_early_count: int = 3, days: int = 30) -> list:
 
 def save_alert_snapshot(token_address: str, token_symbol: str, alert_mcap: int,
                         alert_block: int, wallet_count: int, first_sm_block: int,
-                        early_buyers_found: int = 0) -> bool:
-    """Alert snapshot kaydet."""
+                        early_buyers_found: int = 0, wallets_involved: list = None) -> bool:
+    """Alert snapshot kaydet. wallets_involved: alım yapan cüzdan adresleri listesi."""
     conn = get_connection()
     if not conn:
         return False
     try:
+        wallets_str = ",".join(wallets_involved) if wallets_involved else ""
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO alert_snapshots (token_address, token_symbol, alert_mcap, alert_block,
-                                         wallet_count, first_sm_block, early_buyers_found)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                                         wallet_count, first_sm_block, early_buyers_found, wallets_involved)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """, (token_address.lower(), token_symbol, alert_mcap, alert_block,
-              wallet_count, first_sm_block, early_buyers_found))
+              wallet_count, first_sm_block, early_buyers_found, wallets_str))
         cur.close()
         return True
     except Exception as e:
@@ -697,7 +706,8 @@ def get_all_alert_snapshots() -> list:
         cur = conn.cursor()
         cur.execute("""
             SELECT id, token_address, token_symbol, alert_mcap, alert_block,
-                   wallet_count, first_sm_block, early_buyers_found, created_at
+                   wallet_count, first_sm_block, early_buyers_found, created_at,
+                   COALESCE(wallets_involved, '')
             FROM alert_snapshots ORDER BY created_at ASC
         """)
         rows = cur.fetchall()
@@ -706,7 +716,8 @@ def get_all_alert_snapshots() -> list:
             "id": r[0], "token_address": r[1], "token_symbol": r[2],
             "alert_mcap": r[3], "alert_block": r[4], "wallet_count": r[5],
             "first_sm_block": r[6], "early_buyers_found": r[7],
-            "created_at": r[8].isoformat() if r[8] else None
+            "created_at": r[8].isoformat() if r[8] else None,
+            "wallets_involved": [w for w in r[9].split(",") if w] if r[9] else [],
         } for r in rows]
     except Exception as e:
         print(f"⚠️ Alert snapshots okuma hatası: {e}")
@@ -761,6 +772,43 @@ def get_wallet_alert_participation() -> list:
         } for r in rows]
     except Exception as e:
         print(f"⚠️ Wallet alert participation okuma hatası: {e}")
+        return []
+
+
+def get_wallet_participation_from_snapshots() -> list:
+    """Alert snapshot'lardan her cüzdanın hangi alertlere katıldığını çıkar."""
+    conn = get_connection()
+    if not conn:
+        return []
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT token_address, token_symbol, wallets_involved, created_at
+            FROM alert_snapshots
+            WHERE wallets_involved IS NOT NULL AND wallets_involved != ''
+            ORDER BY created_at ASC
+        """)
+        rows = cur.fetchall()
+        cur.close()
+
+        results = []
+        for r in rows:
+            token_addr = r[0]
+            token_symbol = r[1]
+            wallets_str = r[2] or ""
+            created_at = r[3]
+            for wallet in wallets_str.split(","):
+                wallet = wallet.strip().lower()
+                if wallet:
+                    results.append({
+                        "wallet_address": wallet,
+                        "token_address": token_addr,
+                        "token_symbol": token_symbol,
+                        "created_at": created_at.isoformat() if created_at else None,
+                    })
+        return results
+    except Exception as e:
+        print(f"⚠️ Snapshot wallet participation okuma hatası: {e}")
         return []
 
 

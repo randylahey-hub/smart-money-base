@@ -433,6 +433,7 @@ def run_full_alert_analysis() -> dict:
             "current_mcap": a.get("current_mcap", 0),
             "change_pct": round(a.get("change_5min_pct", 0) * 100, 2),
             "created_at_utc3": a.get("created_at_utc3", ""),
+            "wallets_involved": a.get("wallets_involved", []),
         } for a in short_list],
         "contracts_check": [{
             "token_address": a["token_address"],
@@ -441,6 +442,7 @@ def run_full_alert_analysis() -> dict:
             "current_mcap": a.get("current_mcap", 0),
             "change_pct": round(a.get("change_30min_pct", 0) * 100, 2),
             "created_at_utc3": a.get("created_at_utc3", ""),
+            "wallets_involved": a.get("wallets_involved", []),
         } for a in contracts_check],
         "trash_calls": [{
             "token_address": a["token_address"],
@@ -449,6 +451,7 @@ def run_full_alert_analysis() -> dict:
             "current_mcap": a.get("current_mcap", 0),
             "trash_reason": a.get("trash_reason", ""),
             "created_at_utc3": a.get("created_at_utc3", ""),
+            "wallets_involved": a.get("wallets_involved", []),
         } for a in trash_calls],
         "trash_only_wallets": trash_only_wallets,
         "counts": {

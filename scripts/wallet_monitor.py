@@ -31,7 +31,8 @@ from config.settings import (
     TRANSFER_EVENT_SIGNATURE,
     SWAP_SIGNATURES,
     EXCLUDED_TOKENS,
-    EXCLUDED_SYMBOLS
+    EXCLUDED_SYMBOLS,
+    BLACKOUT_HOURS,
 )
 from scripts.telegram_alert import (
     send_smart_money_alert,
@@ -376,6 +377,13 @@ class SmartMoneyMonitor:
                 print(f"⏳ Alert cooldown aktif: {token_address[:10]}...")
                 return
 
+            # === BLACKOUT SAATİ KONTROLÜ ===
+            tr_now = datetime.now(timezone.utc) + timedelta(hours=3)
+            current_hour = tr_now.hour
+            if current_hour in BLACKOUT_HOURS:
+                print(f"🌙 Blackout saat ({current_hour:02d}:00 UTC+3): Alert engellendi — {token_address[:10]}...")
+                return
+
             print(f"\n🚨 ALERT! {len(unique_wallets)} cüzdan aynı tokeni aldı!")
 
             # Token bilgisi al
@@ -522,11 +530,13 @@ class SmartMoneyMonitor:
         print(f"⏳ Alert cooldown: {ALERT_COOLDOWN} saniye")
         print(f"🔍 Swap Doğrulama: Aktif ({len(SWAP_SIGNATURES)} DEX)")
         print(f"📡 Trade Signals: DB üzerinden (ayrı bot)")
+        print(f"🌙 Blackout Saatleri (UTC+3): {sorted(BLACKOUT_HOURS)}")
         print("=" * 60 + "\n")
 
         # Başlangıç bildirimi
+        blackout_str = ", ".join(f"{h:02d}:00" for h in sorted(BLACKOUT_HOURS))
         send_status_update(
-            f"🟢 Monitor v2.0 başlatıldı!\n"
+            f"🟢 Monitor v2.1 başlatıldı!\n"
             f"• {len(self.wallets)} cüzdan izleniyor\n"
             f"• Alert eşiği: {ALERT_THRESHOLD} cüzdan / {TIME_WINDOW}sn\n"
             f"• Max MCap: ${MAX_MCAP/1e3:.0f}K\n"
@@ -536,6 +546,7 @@ class SmartMoneyMonitor:
             f"• Swap Doğrulama: Aktif ({len(SWAP_SIGNATURES)} DEX)\n"
             f"• Airdrop Filtresi: Aktif (${MIN_BUY_VALUE_USD}+ alım)\n"
             f"• Bullish Alert: {BULLISH_WINDOW//60}dk pencere\n"
+            f"• 🌙 Blackout: {blackout_str}\n"
             f"• Virtual Trading: Aktif (0.5 ETH)\n"
             f"• 📡 Trade Signals: DB (ayrı bot)\n"
             f"• Daily Report: 20:30\n"
