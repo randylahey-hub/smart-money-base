@@ -54,6 +54,19 @@ def _fetch_token_ath_atl(token_address: str) -> dict:
         return {"current_mcap": 0}
 
 
+def _get_wallet_changes() -> str:
+    """Cüzdan ekleme/çıkarma bilgisini al (wallet_evaluator'dan)."""
+    try:
+        from scripts.wallet_evaluator import get_daily_wallet_report_summary
+        summary = get_daily_wallet_report_summary()
+        if summary and summary.strip():
+            # HTML formatına çevir
+            return summary.strip()
+        return ""
+    except Exception:
+        return ""
+
+
 def _get_yesterday_alerts() -> list:
     """
     Dünün alertlerini DB'den çek (UTC+3 00:00 - 23:59).
@@ -180,6 +193,12 @@ def generate_daily_report() -> str:
 
     win_rate = (wins / total * 100) if total > 0 else 0
     lines.append(f"📈 <b>{wins}W</b> / <b>{losses}L</b> — {total} token ({win_rate:.0f}% başarı)")
+
+    # Cüzdan ekleme/çıkarma bilgisi
+    wallet_summary = _get_wallet_changes()
+    if wallet_summary:
+        lines.append("")
+        lines.append(wallet_summary)
 
     return "\n".join(lines)
 
