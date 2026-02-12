@@ -1,0 +1,2095 @@
+{
+  "analysis_date": "2026-02-12T08:57:45.480417",
+  "source": "basescan_v2_early_buyers",
+  "tokens_analyzed": 15,
+  "total_early_buyers": 239,
+  "recurring_2plus": 38,
+  "recurring_3plus": 11,
+  "recurring_wallets": [
+    {
+      "address": "0x498581ff718922c3f8e6a244956af099b2652b2b",
+      "token_count": 8,
+      "tokens": [
+        "JUNO",
+        "SAIRI",
+        "SELFCLAW",
+        "OSO",
+        "PROXI",
+        "AIGHT",
+        "SOLVR",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x6ff5693b99212da76ad316178a184ab56d299b43",
+      "token_count": 8,
+      "tokens": [
+        "JUNO",
+        "SAIRI",
+        "SELFCLAW",
+        "OSO",
+        "PROXI",
+        "AIGHT",
+        "SOLVR",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xd8ba9d1a99fc21f0eca24e9b85737c28a194a4e2",
+      "token_count": 7,
+      "tokens": [
+        "JUNO",
+        "SAIRI",
+        "SELFCLAW",
+        "PROXI",
+        "AIGHT",
+        "SOLVR",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xf3622742b1e446d92e45e22923ef11c2fcd55d68",
+      "token_count": 6,
+      "tokens": [
+        "JUNO",
+        "SAIRI",
+        "SELFCLAW",
+        "AIGHT",
+        "SOLVR",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x5ef3be428f6212cf0cc81a84c6ea11bdfad39e27",
+      "token_count": 5,
+      "tokens": [
+        "JUNO",
+        "SELFCLAW",
+        "PROXI",
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xdc5d8200a030798bc6227240f68b4dd9542686ef",
+      "token_count": 5,
+      "tokens": [
+        "SAIRI",
+        "OSO",
+        "PROXI",
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x538eae3017ef7e48af53f7a4d0b1f4d23d68df35",
+      "token_count": 4,
+      "tokens": [
+        "JUNO",
+        "SELFCLAW",
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xef22e6a8e7857c52614bf956d0a6527af73a4d97",
+      "token_count": 4,
+      "tokens": [
+        "SELFCLAW",
+        "PROXI",
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x47d8c6f1eeaf8bb417d674d5b74ef63f1394dcca",
+      "token_count": 3,
+      "tokens": [
+        "JUNO",
+        "PROXI",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x3a4cc3d5b6a00a6599acaa5a370f77b8d93c5593",
+      "token_count": 3,
+      "tokens": [
+        "JUNO",
+        "PROXI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x1610bb7929fab4b9da1e2b628e8c1ee5d80391b3",
+      "token_count": 3,
+      "tokens": [
+        "PROXI",
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xf1ee5f05f4a6dd4443487d980b064bfd5d9d17fc",
+      "token_count": 2,
+      "tokens": [
+        "JUNO",
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc",
+      "token_count": 2,
+      "tokens": [
+        "JUNO",
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x9e7d16955f779ce16148512e352912ce9841ff9b",
+      "token_count": 2,
+      "tokens": [
+        "JUNO",
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x2c7a33ae57c9148c799b48427d746ef5857cd1d3",
+      "token_count": 2,
+      "tokens": [
+        "JUNO",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x32a342dfa390394bdc947ca1a335303c6697ab4b",
+      "token_count": 2,
+      "tokens": [
+        "SAIRI",
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x7906d5e4a10fbb07f5491018ab29df072a76eb3d",
+      "token_count": 2,
+      "tokens": [
+        "SAIRI",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xd87b6f1b9fcb9deb0baf5661ffd9775ab5e94a55",
+      "token_count": 2,
+      "tokens": [
+        "SAIRI",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xc479b79e53c1065e5e56a6da78e9d634b4ae1e5d",
+      "token_count": 2,
+      "tokens": [
+        "SAIRI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x2ce9d43d1cba6ae31d7f07bfe0098dfa2d833373",
+      "token_count": 2,
+      "tokens": [
+        "SELFCLAW",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x0df5909eafb1729b0acaeeb71d5d52da0cd85c37",
+      "token_count": 2,
+      "tokens": [
+        "SELFCLAW",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x9c3ec1683325e0c2105eaf14ede7bef31ffc272d",
+      "token_count": 2,
+      "tokens": [
+        "OSO",
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x63242a4ea82847b20e506b63b0e2e2eff0cc6cb0",
+      "token_count": 2,
+      "tokens": [
+        "OSO",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0xd4f5b992a500e3b74be5fdc4e00c773e3f42cd2c",
+      "token_count": 2,
+      "tokens": [
+        "OSO",
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0xf5042e6ffac5a625d4e7848e0b01373d8eb9e222",
+      "token_count": 2,
+      "tokens": [
+        "OSO",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x9fbcf5a5d406fb262a5aa2956d978d6071e5104b",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x8589d91a6c1a32a0a03078bb3704a3ec11b6971c",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x584ab8cbd52eec6618f543ceaaa6cab29a7dcf90",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x03adbb746fb2067d3aecef44211c9cee65436142",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x2ecc853eb0e4a5dd5d5c74f2a21f344a769540c9",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x02dfb5e994ce6b9832774af13f2dd8c0b0968d03",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x237debc2036c2e57c46b5ac1abf2c1f06b694ccd",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x0c711d1c86d0245cf5a5c8e3e6eec7ddcfd4a442",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0xe691d2fc1e2fdcd51593805393bb0f07e1a22147",
+      "token_count": 2,
+      "tokens": [
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x2bd6c1a1f774b4fe92c27d438720eecf92596c9d",
+      "token_count": 2,
+      "tokens": [
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x25df3c1807e171abe73ec9361ac30f17faa8cefe",
+      "token_count": 2,
+      "tokens": [
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x59495c0497abb3c2a60eb7df89b6ad94df8b6993",
+      "token_count": 2,
+      "tokens": [
+        "SOLVR",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xa856f9fffbf8673e547e2c50b60729d04c0515a6",
+      "token_count": 2,
+      "tokens": [
+        "SOLVR",
+        "ClawBank"
+      ]
+    }
+  ],
+  "all_wallets": [
+    {
+      "address": "0x498581ff718922c3f8e6a244956af099b2652b2b",
+      "token_count": 8,
+      "tokens": [
+        "JUNO",
+        "SAIRI",
+        "SELFCLAW",
+        "OSO",
+        "PROXI",
+        "AIGHT",
+        "SOLVR",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x6ff5693b99212da76ad316178a184ab56d299b43",
+      "token_count": 8,
+      "tokens": [
+        "JUNO",
+        "SAIRI",
+        "SELFCLAW",
+        "OSO",
+        "PROXI",
+        "AIGHT",
+        "SOLVR",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xd8ba9d1a99fc21f0eca24e9b85737c28a194a4e2",
+      "token_count": 7,
+      "tokens": [
+        "JUNO",
+        "SAIRI",
+        "SELFCLAW",
+        "PROXI",
+        "AIGHT",
+        "SOLVR",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xf3622742b1e446d92e45e22923ef11c2fcd55d68",
+      "token_count": 6,
+      "tokens": [
+        "JUNO",
+        "SAIRI",
+        "SELFCLAW",
+        "AIGHT",
+        "SOLVR",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x5ef3be428f6212cf0cc81a84c6ea11bdfad39e27",
+      "token_count": 5,
+      "tokens": [
+        "JUNO",
+        "SELFCLAW",
+        "PROXI",
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xdc5d8200a030798bc6227240f68b4dd9542686ef",
+      "token_count": 5,
+      "tokens": [
+        "SAIRI",
+        "OSO",
+        "PROXI",
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x538eae3017ef7e48af53f7a4d0b1f4d23d68df35",
+      "token_count": 4,
+      "tokens": [
+        "JUNO",
+        "SELFCLAW",
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xef22e6a8e7857c52614bf956d0a6527af73a4d97",
+      "token_count": 4,
+      "tokens": [
+        "SELFCLAW",
+        "PROXI",
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x47d8c6f1eeaf8bb417d674d5b74ef63f1394dcca",
+      "token_count": 3,
+      "tokens": [
+        "JUNO",
+        "PROXI",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x3a4cc3d5b6a00a6599acaa5a370f77b8d93c5593",
+      "token_count": 3,
+      "tokens": [
+        "JUNO",
+        "PROXI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x1610bb7929fab4b9da1e2b628e8c1ee5d80391b3",
+      "token_count": 3,
+      "tokens": [
+        "PROXI",
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xf1ee5f05f4a6dd4443487d980b064bfd5d9d17fc",
+      "token_count": 2,
+      "tokens": [
+        "JUNO",
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc",
+      "token_count": 2,
+      "tokens": [
+        "JUNO",
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x9e7d16955f779ce16148512e352912ce9841ff9b",
+      "token_count": 2,
+      "tokens": [
+        "JUNO",
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x2c7a33ae57c9148c799b48427d746ef5857cd1d3",
+      "token_count": 2,
+      "tokens": [
+        "JUNO",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x32a342dfa390394bdc947ca1a335303c6697ab4b",
+      "token_count": 2,
+      "tokens": [
+        "SAIRI",
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x7906d5e4a10fbb07f5491018ab29df072a76eb3d",
+      "token_count": 2,
+      "tokens": [
+        "SAIRI",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xd87b6f1b9fcb9deb0baf5661ffd9775ab5e94a55",
+      "token_count": 2,
+      "tokens": [
+        "SAIRI",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xc479b79e53c1065e5e56a6da78e9d634b4ae1e5d",
+      "token_count": 2,
+      "tokens": [
+        "SAIRI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x2ce9d43d1cba6ae31d7f07bfe0098dfa2d833373",
+      "token_count": 2,
+      "tokens": [
+        "SELFCLAW",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x0df5909eafb1729b0acaeeb71d5d52da0cd85c37",
+      "token_count": 2,
+      "tokens": [
+        "SELFCLAW",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x9c3ec1683325e0c2105eaf14ede7bef31ffc272d",
+      "token_count": 2,
+      "tokens": [
+        "OSO",
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x63242a4ea82847b20e506b63b0e2e2eff0cc6cb0",
+      "token_count": 2,
+      "tokens": [
+        "OSO",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0xd4f5b992a500e3b74be5fdc4e00c773e3f42cd2c",
+      "token_count": 2,
+      "tokens": [
+        "OSO",
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0xf5042e6ffac5a625d4e7848e0b01373d8eb9e222",
+      "token_count": 2,
+      "tokens": [
+        "OSO",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x9fbcf5a5d406fb262a5aa2956d978d6071e5104b",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x8589d91a6c1a32a0a03078bb3704a3ec11b6971c",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x584ab8cbd52eec6618f543ceaaa6cab29a7dcf90",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x03adbb746fb2067d3aecef44211c9cee65436142",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x2ecc853eb0e4a5dd5d5c74f2a21f344a769540c9",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x02dfb5e994ce6b9832774af13f2dd8c0b0968d03",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x237debc2036c2e57c46b5ac1abf2c1f06b694ccd",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x0c711d1c86d0245cf5a5c8e3e6eec7ddcfd4a442",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0xe691d2fc1e2fdcd51593805393bb0f07e1a22147",
+      "token_count": 2,
+      "tokens": [
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x2bd6c1a1f774b4fe92c27d438720eecf92596c9d",
+      "token_count": 2,
+      "tokens": [
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x25df3c1807e171abe73ec9361ac30f17faa8cefe",
+      "token_count": 2,
+      "tokens": [
+        "AIGHT",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x59495c0497abb3c2a60eb7df89b6ad94df8b6993",
+      "token_count": 2,
+      "tokens": [
+        "SOLVR",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xa856f9fffbf8673e547e2c50b60729d04c0515a6",
+      "token_count": 2,
+      "tokens": [
+        "SOLVR",
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x891422c7266d534a5ccdb8831942515fbe262ea1",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x0d383de1b7eac6785c366d4dfbeed228f0e8dd49",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x5d64d14d2cf4fe5fe4e65b1c7e3d11e18d493091",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x667faa7223dc087d31e3afacbcc57c69cb189cef",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xc835721c699235b7a5dfdcb122b143f6d55bceb4",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x0610b17bd3c88d425c01306063ae9254e52f9d72",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x43aea85031e6158baf8b6417ea6a87c81b8b3533",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xe846cf84f1ab29733b7cc9e61f1b39b2a3746ba4",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x9c47f634f601f4c1fca6ebbbf9eb8f7578d5b3b5",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x65ef13a5a612c27b4d94c98fb4317d62a97e5cf2",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xb109670082688779e809f881e6c40627d0b21be7",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x22dde40f29046caae87c825cff714442a70d10b9",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x87f96f345afe3dc0672b947c2c86811eaba333b9",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x0853a0830897a323f422e456e4af7e2857eccccc",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xb05108ea981e0ab9ead876548525a3fddc791433",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x1e7e63199285a0e499f15e7a1a0a0a80d3953339",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x87606792d67116e37b5cc27b4a600fff2396179b",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xa6478a332b39caa09e125070a1dc51ce471a73ce",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xbadc1de0b81b9a8ddd838d6910260e43ddfe648c",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xed1dee76a6c28425f7bb66730bd7fb12848c2ba6",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xf0e71c7143541fa52255a8b36654390962afae70",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xfa00a9ed787f3793db668bff3e6e6e7db0f92a1b",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xa83b73f5644cde337b61da79589f10ea15548811",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xad619bd75381305cbc6cfab61f4f461dc278b4f9",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xa59acc26780a5d9abefc774d17963d37a2ac44ff",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xb2ecf9ab1ab0bdb007eae374ccf474129cb846e9",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x19d053b32b39f41fa898da67504f9cc563e510e9",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0xa034da4830f0adf1c20e2dc178a925d1625eba68",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ]
+    },
+    {
+      "address": "0x6bcb89a7d3a6f48cc9708007bc8835ce7f51ba88",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x14596d4dbb1a549c38e888dbafcaa2a3adf3760f",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x5334cb88f4f64e565237ecd4d9f2e566028871b4",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0xa2bf2179eb8580ca412489523fb0ec6f9974641f",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x8de8010a424f90bfc1176378f7f5f896cc64fe3c",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x680576f96778d27c062707f6dd8d120833d1224c",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x041689be84ef12710ca29591174bb618e33d4738",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x5b8caed47dea0e4101764d9463ffec50381e761b",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x9848c7953b8b627de07183fcfd912ecfc5668bbb",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0xb61f865417a7d77e1d8b5f8c2ab4f380c33d63f6",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x7b272f006968f13f10b4746bd0938d689e59b54a",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0xa2021ae9d3ed191a3a02e2ddc163bb1f94abe780",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x87859bb5cb42bfe3e8b32817d1be8e1594027f33",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0xec65fe6630722ad597e7f5dbe152b286d056a0db",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0xb11a44ad8274a98a7e5ad0e8226653731b3d4682",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x7231fe7165b7aa7f59f497f47dd0aa1783529089",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x05d0c297290902e170f0997be342cccf6663670f",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x5d61249edeace896c582ed3b87a4d008a34a746b",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0xe8eb065b48d8d28bb9fcafc0c9f1ecfd3402a336",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0x07b93f9be72bb59d8c78e3f612e0c018162eac48",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0xbfb1bb6c9e60297a5ae6063d2aab0efd13eec0b7",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ]
+    },
+    {
+      "address": "0xc28eba2b0551267f4016ad0dc2324b2b6a770cbf",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x4206048263e6d2ca8e0351a343b0764619af4444",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x8996718e5a0a92dc005286932157c140b6d28956",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xf5ea9bed8abcba3fea56ffc54996370e716f3d77",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xcc8bfdb51260bcb255e3ff3746ecbd7f44d5b958",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xcf8ac9e2ea1cabf9667798566e4bf378f5424504",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xc50491baf5dce382c7a40629cd199cc17e68e0f7",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x8647582fd19c41c1bf0a418576c894d4f708919f",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x42f7bdc0a8c6e80aa3c35da16ea607c6b3b70727",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x67558e3728c4278ec9e7a46a69f77635d4a791b5",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xc301f22aea74afeccbc908fc9b9eaa9dc85321d5",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x74ffbc30e1a40c0440a6a4ca2839dcff9cc897d3",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x1f8effaa69e9a4395523578684cdb53f3dbd55f1",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x6ee7335be9825c9814cf5d8a528cacf8d6037360",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x4727386ab140bb845f0b211030cc372ab51fdff3",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xa7bfa56d1fbb7809b8424b452896707be408e1bc",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x09ca468571d447d06f98c279df24d41faf8caf83",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x3edc1881332f8c334b5ad75312c44fe75fe01851",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x50914c6f1fb6f82a826e6d6fea5a2c56cf4f2a4f",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xdbb9b92a571531ace3dc2174306a7afc712a507f",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xf9da49b600228cab30639d5cb1d10220bfe3aaee",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x0a8522c73b6b7d1a9b74cd34b456b37944952624",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x2025abcd2945d28ef458fbf1ca3822c478068d9f",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xb59970ee2ba808b74a791185f4ab4a632d7c7071",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xc2f753de5d4c749ab59dccd98c71b73599df3d7a",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xe4d958daa371101fe326cd6a92d03510dedbeedb",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xa8067a895869bb58d2aadea7032b18473cfb69e6",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0xac281f02d9b5b2787f21d7d60e44940079778c06",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x93eff15a93aa840c319d177f041754de58df04d3",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x3f9c99c0699f2fb7f8fa19d17e5814171f9b32bf",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ]
+    },
+    {
+      "address": "0x816c01b9e2b47d4fbdf9d57de1c17668aa8e4670",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x38fa7dde1bc291584efff7fb51313a2fed2ff2da",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x7c4d5e4d7f1c9938132884bbc58adaeb0dc228fc",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xd2e863ac59fe43feb4a36cee1e803899636463c4",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x5aafc1f252d544f744d17a4e734afd6efc47ede4",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xeccce72d811a35b890b843c4b776ffe8814a24c8",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xdbd8d6e583d3f7d2b4365f243940209026ad19fb",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x77b5939824d31c5a67a96cd9333f95fac8b1c96b",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xd607d4aa8a9f76e6902d62edd59f714a7d1daf49",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x88e1f849f5e12c86be22e8a7cf27cc0088e9dac2",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xad01c20d5886137e056775af56915de824c8fce5",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x4eb3d06c16f8e40b0f9585895b2d106c1104079f",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xb924f7cfb8be048fa0438383433ca63b4593e377",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x5f364e17c75762440802c93ca6dc8b4b99e94eaa",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xbb68bad2cf862c7329a18990de03681c32ba1223",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x53067cb4555fc931b72e4a69f10152eb53599c28",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x39d22d1d21abc60be64570c3dba90f5330fa9f6e",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x55889b073debf989a7c5246390eea4989c6e73c1",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x583446f00d753f3d57418a3d7a7cc928abdbe663",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x16eb24d4056f17026a64df7a2a7984cd8e28cdc1",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x7ee7a71fbf080168df473906c2c4a4d9e946c970",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xc6742307b3d09b06e9ce719427a95650f0d6b0b4",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x9f91be8929f8c8fddaf05e0879f673242b7f850c",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xbeac2954393bcff1523202aa400b3ffe239bf092",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x0c4fdadcdaa3120ddd893a548b6ee7440c4779c8",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x2a1284f4045e9197a0a4396b86e8b3e9c473ea38",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x2d4cd9de496e70f9587d3285679f39ade288e63f",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xd6dfc9f3732ca6724d25a4d2a06d3be50a1c6540",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x7f22353d1634223a802d1c1ea5308ddf5dd0ef9c",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xe7ad1c9af94494764842db881f92f306f64b1783",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x0dd2cbee0504f6c5981e7e266cdc2b733cb36eda",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0x460ec7d01435dc185ddd901fe6b5665c3278f4fa",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xc8b7182a249273ff284a7c011fa6435afd751c82",
+      "token_count": 1,
+      "tokens": [
+        "OSO"
+      ]
+    },
+    {
+      "address": "0xa36715da46ddf4a769f3290f49af58bf8132ed8e",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x0a6393ed557fae88da5c510b5a56de3e8f3b9a1d",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0xea5b99ca3926690ee4ec49c232595f432de8ae20",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0xc0c0e4f7cb82c826a2596f50ae01cafeac61085d",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0xf32899971448e8d23c375b68604d7ea426c6c282",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x85bd73e425acb17d34fdb1e9ab6eef6e341e0c32",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x8e1f153c819209073fd6298644c5188f911adeff",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0xacee7e7b11ea85aba3f29f2f450102131646048a",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x8a5bcb773c3be502e63a3ad6e0145e34a4652c21",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0xf17f9dc4a1c9424a8b49f44ec8540214d7d0126b",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x89920d3ea244a0d0e1bedaf87a14f52000234589",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x4df189617c1d903069bcf0f6812b273132b12ac6",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0xd98c05a57f6cd651579f6bcc0224aae12f04d8c6",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0xf9f5e8cc7cefacd4be05776837af24f4e0e8b94c",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x41eb4f520a014590f05b36b4688e8f94ab5bc7c8",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x71634c0c62b3f34aaab51f914fe5809dede835e1",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x9bb15abecf1648f2a8b8e50a2c148f6800c5e327",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0xd383a3d2d6a0310203dc7808ba05e5071037c375",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x1cdbdb52c21f511d939e6a0b286511f073d45419",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x419c2919847346417693527402a0da1fe60c4ee4",
+      "token_count": 1,
+      "tokens": [
+        "PROXI"
+      ]
+    },
+    {
+      "address": "0x36b6caf29e1784cc16de37e0e28c49577c4e839b",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x2398e6edb795ea753e487930202d9fcd82111614",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0xa4e2f0b4d37967b0e2e70913cd83c6324bb53df7",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x174c0f1251cf1b7a45159942abeb6430ea54ddea",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x5d420769080c4122b5a29fd21cb77e53b06a229d",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0xc854877b7fd78dec36e3cbff747a1f72afb8bede",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0xce774847214405c85f457a172536ecb9da95c25c",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x60e652d583064e62c4fc65dbb7e6cebc9b7fe5a2",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x2d94a0b9bfa74ae09c5eb3b96f6a5a288cd22e9e",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x7a9523721f611839ee6e16a5023509cad801bc7d",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x5deb71692c5d3cf3bd936e0b5cc6bf33696d8966",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x431855942313554c48ee415fcc49df08d16e7a3c",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x30128789a050ad15a2dbb3d5786e178aea282acd",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x846d959cbe687ed9a6718155ed8cdc1654319de6",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x256224ffbee98b57762ec8039dd0c5b3a6edbfe2",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0x8a160b088199e52678acf5ef8457301a7f2464f5",
+      "token_count": 1,
+      "tokens": [
+        "AIGHT"
+      ]
+    },
+    {
+      "address": "0xbd3183a293b3bea81479be052491207f1a328adf",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x81d7c957e477c33b822db6fbddd176194f47ea9d",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0xa4a38c6e05a1a818da9c617cc771f25256521e61",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x49fb9c16b9b2a19452633573603c837673fd7e04",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x476a4817ff11a712cbd791676417f0838cf18f6d",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0xeab52105539c87cf56fb5de0b20dedc4be948d1d",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0xf03501e3b1d8c70e21c5661d2de817dd30c01e3f",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x5552a9958f96983250e7adabf4ffb21c332e5555",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0xcc457582e034a1a59e2550e162e8c3991eadb177",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x40e56fa7759c1bdc67764fcd76c8ee7bc9486c08",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0xbbd93f2ebc1a6f009bf16f4bd0f804564a5de977",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x583b822b22766996414a3abc5770b7b476e9f13d",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x1cd9e2f27534723c561472448ba3e8e3ca63209d",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0xbd480b3b37af38039865091284fbed16b496f0ea",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x08e34ff4b7c531184a63572a3d0188d4ebc5ceb1",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x4bee52c286ef878238540ea34ce6cf2e38fb528c",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x3d874eab2766bcf5ed67aa1e142722ab347d17b5",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x746152302f01acaa31403ed48f7eee5e18b5ae33",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0xd88a9971f9f9f14b74873ebb6de654d037c2a477",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x6e2140fc405e25fba0b43a27f8ee0637f69d7c06",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x4fd672839e7175ce6797633c70187849af29311e",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0xce04388107acbea0a7d108bdc2ca3360bb797431",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0xc2f5f219b8e429f85dc4d3575fc704f85178bbb4",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0xae028e7f606a222f352bcd9302ceee52c4af5019",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0xb9af3fc38ed0df769e0c82021bb9104806d94161",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x5f20acd6af25a5fca7d0c1b8e23863e0379696c4",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x09dac7ff6c49becdb372b65662461f0df945f3ea",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x05743f1f9c0b9454976b1805664c073e32ed6fde",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x93517eafb2c531e6e8649eff9d157017a7828886",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0xdf000ee390648d1eda99c5fc291ec3342871dce4",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x1064bc5406bc61951cb62829e71eb966a012799e",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x2d383113cecf9869efdc9471dac3cdf6db0e8f4f",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x7894d06dcf625e46ba8b66a93baa5b48967ae95b",
+      "token_count": 1,
+      "tokens": [
+        "SOLVR"
+      ]
+    },
+    {
+      "address": "0x162ea116bbfae0a36d8019975f0472e4a5e2cec0",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x96d550516f8f964fabed33e8dd5351954489afda",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x1e912483fab94e93b77e66cf1150a6d297469c41",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x81f84309fa21955badf251ac8ac33d080384c670",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x975b7d20a72e1b78a326421ebdef086335555c92",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xb6e85b0499ba9f0da7353863acf1de8603a36e52",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x91018093d980f0391fecb9cd677a5d37ea6f4b2d",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x465f05d273f966b18535c43ad649dbd82ad2bf6b",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x7d0657787f9cb41881eb2d2fdba89f75c839dfc7",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xc9b41bb5ae1ece4a00d730e0700b1266ed972dbb",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x18e5a4c6b95a7a87b1a05300154fbe111152815b",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x0bc546926106e7c896cac36a81c924db13a214e3",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x0a0134787f889bdf1e1fc005005042a7a554cf32",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x0ff2a1aa7963cccbc5db0f71cae87aa475650e40",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xc51b211fe1f47982b27a35ad56de634d7391c206",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x9cec402099f41870773a5b8d08324d18f533b5d6",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x863934ec7c206ccc9fd12c929284b1b3a06a6404",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xba2ea0f22b7624093d33d7872b5f9712c03db2d1",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0xae036541f8371185031f66269bbe86333a459d3a",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    },
+    {
+      "address": "0x6c198cdcf85c122d12857741d182783d5f58da0f",
+      "token_count": 1,
+      "tokens": [
+        "ClawBank"
+      ]
+    }
+  ]
+}

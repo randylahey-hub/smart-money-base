@@ -1,0 +1,232 @@
+{
+  "filter_date": "2026-02-12T09:06:21.334055",
+  "method": "expanded_filter_v2",
+  "qualified_count": 24,
+  "qualified": [
+    {
+      "address": "0x3a4cc3d5b6a00a6599acaa5a370f77b8d93c5593",
+      "token_count": 3,
+      "tokens": [
+        "JUNO",
+        "PROXI",
+        "AIGHT"
+      ],
+      "age_days": 197,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0x1610bb7929fab4b9da1e2b628e8c1ee5d80391b3",
+      "token_count": 3,
+      "tokens": [
+        "PROXI",
+        "AIGHT",
+        "ClawBank"
+      ],
+      "age_days": 554,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc",
+      "token_count": 2,
+      "tokens": [
+        "JUNO",
+        "SAIRI"
+      ],
+      "age_days": 76,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0x2c7a33ae57c9148c799b48427d746ef5857cd1d3",
+      "token_count": 2,
+      "tokens": [
+        "JUNO",
+        "AIGHT"
+      ],
+      "age_days": 202,
+      "recent_txs_24h": 4
+    },
+    {
+      "address": "0x584ab8cbd52eec6618f543ceaaa6cab29a7dcf90",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "ClawBank"
+      ],
+      "age_days": 88,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0x2ecc853eb0e4a5dd5d5c74f2a21f344a769540c9",
+      "token_count": 2,
+      "tokens": [
+        "PROXI",
+        "AIGHT"
+      ],
+      "age_days": 446,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0xe691d2fc1e2fdcd51593805393bb0f07e1a22147",
+      "token_count": 2,
+      "tokens": [
+        "AIGHT",
+        "ClawBank"
+      ],
+      "age_days": 38,
+      "recent_txs_24h": 27
+    },
+    {
+      "address": "0x5d64d14d2cf4fe5fe4e65b1c7e3d11e18d493091",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ],
+      "age_days": 643,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0x65ef13a5a612c27b4d94c98fb4317d62a97e5cf2",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ],
+      "age_days": 30,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0xfa00a9ed787f3793db668bff3e6e6e7db0f92a1b",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ],
+      "age_days": 78,
+      "recent_txs_24h": 2
+    },
+    {
+      "address": "0xad619bd75381305cbc6cfab61f4f461dc278b4f9",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ],
+      "age_days": 88,
+      "recent_txs_24h": 29
+    },
+    {
+      "address": "0x19d053b32b39f41fa898da67504f9cc563e510e9",
+      "token_count": 1,
+      "tokens": [
+        "JUNO"
+      ],
+      "age_days": 46,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0x041689be84ef12710ca29591174bb618e33d4738",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ],
+      "age_days": 223,
+      "recent_txs_24h": 1
+    },
+    {
+      "address": "0x7231fe7165b7aa7f59f497f47dd0aa1783529089",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ],
+      "age_days": 65,
+      "recent_txs_24h": 9
+    },
+    {
+      "address": "0x05d0c297290902e170f0997be342cccf6663670f",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ],
+      "age_days": 80,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0x5d61249edeace896c582ed3b87a4d008a34a746b",
+      "token_count": 1,
+      "tokens": [
+        "SAIRI"
+      ],
+      "age_days": 55,
+      "recent_txs_24h": 5
+    },
+    {
+      "address": "0x4206048263e6d2ca8e0351a343b0764619af4444",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ],
+      "age_days": 113,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0xcc8bfdb51260bcb255e3ff3746ecbd7f44d5b958",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ],
+      "age_days": 35,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0x42f7bdc0a8c6e80aa3c35da16ea607c6b3b70727",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ],
+      "age_days": 44,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0x67558e3728c4278ec9e7a46a69f77635d4a791b5",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ],
+      "age_days": 44,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0xdbb9b92a571531ace3dc2174306a7afc712a507f",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ],
+      "age_days": 680,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0xf9da49b600228cab30639d5cb1d10220bfe3aaee",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ],
+      "age_days": 464,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0x0a8522c73b6b7d1a9b74cd34b456b37944952624",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ],
+      "age_days": 917,
+      "recent_txs_24h": 0
+    },
+    {
+      "address": "0x2025abcd2945d28ef458fbf1ca3822c478068d9f",
+      "token_count": 1,
+      "tokens": [
+        "SELFCLAW"
+      ],
+      "age_days": 113,
+      "recent_txs_24h": 24
+    }
+  ]
+}
