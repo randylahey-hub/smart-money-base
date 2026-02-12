@@ -832,6 +832,43 @@ def cleanup_old_wallet_activity(days: int = 30) -> int:
         return 0
 
 
+def get_alerts_by_date_range(start_utc: str, end_utc: str) -> list:
+    """
+    Belirli UTC tarih aralığındaki alert snapshot'larını getir.
+    Daily report için kullanılır (UTC+3 dönüşümü çağıran tarafta yapılır).
+
+    Args:
+        start_utc: Başlangıç (ISO format, UTC)
+        end_utc: Bitiş (ISO format, UTC)
+
+    Returns:
+        list: [{token_address, token_symbol, alert_mcap, wallet_count, created_at}, ...]
+    """
+    conn = get_connection()
+    if not conn:
+        return []
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT token_address, token_symbol, alert_mcap, wallet_count, created_at
+            FROM alert_snapshots
+            WHERE created_at >= %s AND created_at < %s
+            ORDER BY created_at ASC
+        """, (start_utc, end_utc))
+        rows = cur.fetchall()
+        cur.close()
+        return [{
+            "token_address": r[0],
+            "token_symbol": r[1],
+            "alert_mcap": r[2] or 0,
+            "wallet_count": r[3] or 0,
+            "created_at": r[4].isoformat() if r[4] else None,
+        } for r in rows]
+    except Exception as e:
+        print(f"⚠️ Date range alert sorgu hatası: {e}")
+        return []
+
+
 # =============================================================================
 # TEST
 # =============================================================================

@@ -33,6 +33,7 @@ from config.settings import (
     EXCLUDED_TOKENS,
     EXCLUDED_SYMBOLS,
     BLACKOUT_HOURS,
+    BLACKOUT_EXTRA_THRESHOLD,
 )
 from scripts.telegram_alert import (
     send_smart_money_alert,
@@ -372,17 +373,20 @@ class SmartMoneyMonitor:
             if wallet not in unique_wallets:
                 unique_wallets[wallet] = p  # (wallet, eth, mcap, ts)
 
-        if len(unique_wallets) >= ALERT_THRESHOLD:
+        # === SOFT BLACKOUT: Düşük başarılı saatlerde eşiği yükselt ===
+        tr_now = datetime.now(timezone.utc) + timedelta(hours=3)
+        current_hour = tr_now.hour
+        effective_threshold = ALERT_THRESHOLD
+        if current_hour in BLACKOUT_HOURS:
+            effective_threshold = ALERT_THRESHOLD + BLACKOUT_EXTRA_THRESHOLD
+
+        if len(unique_wallets) >= effective_threshold:
             if not self._can_send_alert(token_address, len(unique_wallets)):
                 print(f"⏳ Alert cooldown aktif: {token_address[:10]}...")
                 return
 
-            # === BLACKOUT SAATİ KONTROLÜ ===
-            tr_now = datetime.now(timezone.utc) + timedelta(hours=3)
-            current_hour = tr_now.hour
             if current_hour in BLACKOUT_HOURS:
-                print(f"🌙 Blackout saat ({current_hour:02d}:00 UTC+3): Alert engellendi — {token_address[:10]}...")
-                return
+                print(f"🌙 Soft blackout ({current_hour:02d}:00 UTC+3): Eşik {ALERT_THRESHOLD}→{effective_threshold}, {len(unique_wallets)} cüzdan geçti!")
 
             print(f"\n🚨 ALERT! {len(unique_wallets)} cüzdan aynı tokeni aldı!")
 
@@ -530,7 +534,7 @@ class SmartMoneyMonitor:
         print(f"⏳ Alert cooldown: {ALERT_COOLDOWN} saniye")
         print(f"🔍 Swap Doğrulama: Aktif ({len(SWAP_SIGNATURES)} DEX)")
         print(f"📡 Trade Signals: DB üzerinden (ayrı bot)")
-        print(f"🌙 Blackout Saatleri (UTC+3): {sorted(BLACKOUT_HOURS)}")
+        print(f"🌙 Soft Blackout (UTC+3): {sorted(BLACKOUT_HOURS)} → Eşik +{BLACKOUT_EXTRA_THRESHOLD}")
         print("=" * 60 + "\n")
 
         # Başlangıç bildirimi
@@ -546,10 +550,10 @@ class SmartMoneyMonitor:
             f"• Swap Doğrulama: Aktif ({len(SWAP_SIGNATURES)} DEX)\n"
             f"• Airdrop Filtresi: Aktif (${MIN_BUY_VALUE_USD}+ alım)\n"
             f"• Bullish Alert: {BULLISH_WINDOW//60}dk pencere\n"
-            f"• 🌙 Blackout: {blackout_str}\n"
+            f"• 🌙 Soft Blackout: {blackout_str} (eşik +{BLACKOUT_EXTRA_THRESHOLD})\n"
             f"• Virtual Trading: Aktif (0.5 ETH)\n"
             f"• 📡 Trade Signals: DB (ayrı bot)\n"
-            f"• Daily Report: 20:30\n"
+            f"• Daily Report: 00:00\n"
             f"• Self-Improving: {'Aktif' if os.getenv('SELF_IMPROVE_ENABLED', 'false').lower() == 'true' else 'Kapalı'}"
         )
 

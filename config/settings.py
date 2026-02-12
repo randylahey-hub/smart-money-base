@@ -54,10 +54,11 @@ FAKE_ALERT_FLAG_THRESHOLD = int(os.getenv("FAKE_ALERT_FLAG_THRESHOLD", "3"))
 # Data retention (gün) - Bu süreden eski veriler temizlenir
 DATA_RETENTION_DAYS = int(os.getenv("DATA_RETENTION_DAYS", "30"))
 
-# Blackout saatleri (UTC+3) - Bu saatlerde alert gönderilmez (%0 başarı oranı olan saatler)
-# Virgülle ayrılmış saat listesi: "2,4,16,20,21"
+# Soft blackout saatleri (UTC+3) - Bu saatlerde alert eşiği yükselir (ALERT_THRESHOLD + BLACKOUT_EXTRA)
+# Hard block yerine soft kontrol: banger kaçırma riskini azaltır, ama zayıf sinyalleri engeller
 BLACKOUT_HOURS_STR = os.getenv("BLACKOUT_HOURS", "2,4,16,20,21")
 BLACKOUT_HOURS = [int(h.strip()) for h in BLACKOUT_HOURS_STR.split(",") if h.strip()]
+BLACKOUT_EXTRA_THRESHOLD = int(os.getenv("BLACKOUT_EXTRA_THRESHOLD", "1"))  # Blackout'ta eşik +1 (3→4)
 
 # =============================================================================
 # SMARTEST WALLET DETECTION

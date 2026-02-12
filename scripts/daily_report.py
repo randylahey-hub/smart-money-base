@@ -1,166 +1,206 @@
 """
 Daily Report System
-Her gün 20:30'da Telegram'a günlük rapor gönderir.
+Her gün 00:00 UTC+3'te Telegram'a günlük kapanış raporu gönderir.
+
+Format:
+- Bir önceki günün tüm alertleri token bazlı listelenir
+- Her token: alert MCap → ATH/ATL MCap, % değişim
+- Pozitif = W (Win), Negatif = L (Loss)
+- Toplam W/L sayısıyla biter
 """
 
 import json
 import sys
 import os
+import time
 from datetime import datetime, timezone, timedelta
-import asyncio
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.telegram_alert import send_telegram_message
-from scripts.early_detector import load_smartest_wallets, SMARTEST_TARGET
 from scripts.data_cleanup import run_full_cleanup
-from scripts.fake_alert_tracker import load_fake_alerts
-from scripts.database import is_db_available
+from scripts.database import is_db_available, get_alerts_by_date_range
 
-# Rapor saati (Türkiye saati UTC+3)
-REPORT_HOUR = 20
-REPORT_MINUTE = 30
+# Rapor saati (Türkiye saati UTC+3) — gece yarısı
+REPORT_HOUR = 0
+REPORT_MINUTE = 0
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 UTC_PLUS_3 = timezone(timedelta(hours=3))
 
-# Bugün gönderildi mi flag (basit duplicate kontrolü)
+# Bugün gönderildi mi flag
 _last_report_date = None
 
 
-def _get_call_stats() -> dict:
+def _format_mcap(mcap: float) -> str:
+    """MCap'i okunabilir formata çevir: $1.5M, $500K vb."""
+    if mcap >= 1_000_000:
+        return f"${mcap / 1_000_000:.1f}M"
+    elif mcap >= 1_000:
+        return f"${mcap / 1_000:.0f}K"
+    elif mcap > 0:
+        return f"${mcap:.0f}"
+    else:
+        return "$0"
+
+
+def _fetch_token_ath_atl(token_address: str) -> dict:
+    """DexScreener'dan token'in mevcut MCap bilgisini al."""
+    try:
+        from scripts.alert_analyzer import fetch_current_mcap
+        data = fetch_current_mcap(token_address)
+        return {"current_mcap": data.get("mcap", 0)}
+    except Exception as e:
+        print(f"⚠️ MCap fetch hatası ({token_address[:10]}...): {e}")
+        return {"current_mcap": 0}
+
+
+def _get_yesterday_alerts() -> list:
     """
-    Alert kalite istatistiklerini hesapla.
-    DB'den token_evaluations veya alert_analysis.json'dan çeker.
+    Dünün alertlerini DB'den çek (UTC+3 00:00 - 23:59).
+    Aynı token birden fazla kez alert olmuşsa gruplanır.
     """
-    stats = {
-        "total_alerts": 0,
-        "short_list_5min": 0,      # 5dk MCap +20%
-        "contracts_check_30min": 0, # 30dk MCap +50%
-        "trash_calls": 0,
-        "success_rate_5min": 0,
-        "success_rate_30min": 0,
-    }
+    if not is_db_available():
+        return []
 
-    # Önce DB'den dene
-    if is_db_available():
-        try:
-            from scripts.database import get_all_token_evaluations
-            evaluations = get_all_token_evaluations()
-            if evaluations:
-                for ev in evaluations:
-                    cls = ev.get("classification", "")
-                    if cls == "short_list":
-                        stats["short_list_5min"] += 1
-                    elif cls == "contracts_check":
-                        stats["contracts_check_30min"] += 1
-                    elif cls in ("trash", "not_short_list", "dead"):
-                        stats["trash_calls"] += 1
+    # Dünün UTC+3 tarih aralığı
+    now_tr = datetime.now(UTC_PLUS_3)
+    yesterday_tr = now_tr - timedelta(days=1)
 
-                stats["total_alerts"] = stats["short_list_5min"] + stats["contracts_check_30min"] + stats["trash_calls"]
+    # UTC+3 00:00 → UTC olarak hesapla (UTC+3'ten 3 saat çıkar)
+    start_tr = yesterday_tr.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_tr = now_tr.replace(hour=0, minute=0, second=0, microsecond=0)
 
-                if stats["total_alerts"] > 0:
-                    stats["success_rate_5min"] = (stats["short_list_5min"] + stats["contracts_check_30min"]) / stats["total_alerts"] * 100
-                    stats["success_rate_30min"] = stats["contracts_check_30min"] / stats["total_alerts"] * 100
+    start_utc = (start_tr - timedelta(hours=3)).isoformat()
+    end_utc = (end_tr - timedelta(hours=3)).isoformat()
 
-                return stats
-        except Exception:
-            pass
+    alerts = get_alerts_by_date_range(start_utc, end_utc)
+    return alerts
 
-    # Fallback: alert_analysis.json
-    analysis_file = os.path.join(DATA_DIR, "alert_analysis.json")
-    if os.path.exists(analysis_file):
-        try:
-            with open(analysis_file, 'r') as f:
-                data = json.load(f)
-            counts = data.get("counts", {})
-            stats["total_alerts"] = counts.get("total_alerts", 0)
-            stats["short_list_5min"] = counts.get("short_list", 0)
-            stats["contracts_check_30min"] = counts.get("contracts_check", 0)
-            stats["trash_calls"] = counts.get("trash_calls", 0)
 
-            if stats["total_alerts"] > 0:
-                stats["success_rate_5min"] = (stats["short_list_5min"] + stats["contracts_check_30min"]) / stats["total_alerts"] * 100
-                stats["success_rate_30min"] = stats["contracts_check_30min"] / stats["total_alerts"] * 100
-        except Exception:
-            pass
+def _build_token_summary(alerts: list) -> list:
+    """
+    Alert listesinden token bazlı özet oluştur.
+    Aynı token birden fazla alert almışsa ilk alert_mcap kullanılır.
+    DexScreener'dan güncel MCap çekilir.
+    """
+    # Token bazında grupla (ilk alert_mcap'i tut)
+    token_map = {}
+    for alert in alerts:
+        addr = alert["token_address"]
+        if addr not in token_map:
+            token_map[addr] = {
+                "token_address": addr,
+                "token_symbol": alert["token_symbol"] or "???",
+                "alert_mcap": alert["alert_mcap"],
+                "alert_count": 1,
+                "wallet_count": alert.get("wallet_count", 0),
+            }
+        else:
+            token_map[addr]["alert_count"] += 1
 
-    return stats
+    # Her token için güncel MCap çek
+    results = []
+    for addr, info in token_map.items():
+        # Rate limit: DexScreener'a 300ms arası
+        time.sleep(0.3)
+
+        current_data = _fetch_token_ath_atl(addr)
+        current_mcap = current_data["current_mcap"]
+        alert_mcap = info["alert_mcap"]
+
+        # % değişim hesapla
+        if alert_mcap > 0:
+            change_pct = ((current_mcap - alert_mcap) / alert_mcap) * 100
+        else:
+            change_pct = 0
+
+        # W veya L
+        is_win = change_pct >= 0
+
+        results.append({
+            "token_symbol": info["token_symbol"],
+            "token_address": addr,
+            "alert_mcap": alert_mcap,
+            "current_mcap": current_mcap,
+            "change_pct": round(change_pct, 1),
+            "is_win": is_win,
+            "alert_count": info["alert_count"],
+        })
+
+    # Değişim yüzdesine göre sırala (en iyi → en kötü)
+    results.sort(key=lambda x: x["change_pct"], reverse=True)
+    return results
 
 
 def generate_daily_report() -> str:
-    """Günlük rapor mesajı oluştur."""
+    """Günlük kapanış raporu oluştur."""
     now = datetime.now(UTC_PLUS_3)
+    yesterday = now - timedelta(days=1)
+    date_str = yesterday.strftime('%d.%m.%Y')
 
-    # Call istatistikleri
-    call_stats = _get_call_stats()
+    # Dünün alertlerini al
+    alerts = _get_yesterday_alerts()
 
-    # Smartest wallets durumu
-    smartest = load_smartest_wallets()
-    smartest_count = smartest.get("current_count", 0)
+    if not alerts:
+        report = (
+            f"📊 <b>GÜNLÜK KAPANIŞ</b> — {date_str}\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"Dün alert gönderilmedi."
+        )
+        return report
 
-    # Fake alert durumu
-    fake_data = load_fake_alerts()
-    fake_flagged_count = len(fake_data.get("flagged_wallets", []))
-    fake_total_alerts = len(fake_data.get("alerts_log", []))
+    # Token bazlı özet oluştur
+    token_summary = _build_token_summary(alerts)
 
-    # İzlenen cüzdan sayısı
-    wallets_file = os.path.join(DATA_DIR, "smart_money_final.json")
-    total_wallets = 0
-    try:
-        with open(wallets_file, 'r') as f:
-            wallet_data = json.load(f)
-        total_wallets = len(wallet_data.get("wallets", []))
-    except Exception:
-        pass
+    wins = sum(1 for t in token_summary if t["is_win"])
+    losses = sum(1 for t in token_summary if not t["is_win"])
+    total = len(token_summary)
 
-    report = f"""
-📊 <b>GÜN SONU RAPORU</b> - {now.strftime('%d.%m.%Y')}
+    # Rapor başlığı
+    lines = [
+        f"📊 <b>GÜNLÜK KAPANIŞ</b> — {date_str}",
+        f"━━━━━━━━━━━━━━━━━━━━",
+        f"",
+    ]
 
-━━━━━━━━━━━━━━━━━━━━
+    # Token listesi
+    for t in token_summary:
+        emoji = "🟢" if t["is_win"] else "🔴"
+        wl = "W" if t["is_win"] else "L"
+        change_str = f"+{t['change_pct']:.0f}%" if t["change_pct"] >= 0 else f"{t['change_pct']:.0f}%"
+        alert_mcap_str = _format_mcap(t["alert_mcap"])
+        current_mcap_str = _format_mcap(t["current_mcap"])
 
-📡 <b>ALERT KALİTE ANALİZİ</b>
-├─ Toplam Alert: {call_stats['total_alerts']}
-├─ ✅ 5dk Başarılı (MCap +20%): {call_stats['short_list_5min'] + call_stats['contracts_check_30min']} ({call_stats['success_rate_5min']:.0f}%)
-├─ 🏆 30dk Başarılı (MCap +50%): {call_stats['contracts_check_30min']} ({call_stats['success_rate_30min']:.0f}%)
-└─ 🗑️ Trash Call: {call_stats['trash_calls']}
+        line = f"{emoji} <b>{t['token_symbol']}</b> | {alert_mcap_str} → {current_mcap_str} ({change_str}) <b>{wl}</b>"
+        lines.append(line)
 
-━━━━━━━━━━━━━━━━━━━━
+    # Toplam W/L
+    lines.append("")
+    lines.append("━━━━━━━━━━━━━━━━━━━━")
 
-👛 <b>CÜZDAN DURUMU</b>
-├─ İzlenen: {total_wallets} cüzdan
-├─ 🧠 Smartest: {smartest_count}/{SMARTEST_TARGET} bulundu
-└─ 🚩 Fake Alert: {fake_total_alerts} tespit | {fake_flagged_count} cüzdan flagli
-"""
+    win_rate = (wins / total * 100) if total > 0 else 0
+    lines.append(f"📈 <b>{wins}W</b> / <b>{losses}L</b> — {total} token ({win_rate:.0f}% başarı)")
 
-    # Self-improving engine cüzdan durumu (ekleme/çıkarma)
-    try:
-        from scripts.wallet_evaluator import get_daily_wallet_report_summary
-        wallet_summary = get_daily_wallet_report_summary()
-        if wallet_summary:
-            report += "\n" + wallet_summary
-    except Exception:
-        pass
-
-    return report.strip()
+    return "\n".join(lines)
 
 
 def send_daily_report() -> bool:
     """Günlük raporu Telegram'a gönder."""
     global _last_report_date
 
-    print("\n📤 Günlük rapor gönderiliyor...")
+    print("\n📤 Günlük kapanış raporu gönderiliyor...")
 
     # Rapor oluştur ve gönder
     report = generate_daily_report()
     success = send_telegram_message(report)
 
     if success:
-        print("✅ Günlük rapor gönderildi!")
+        print("✅ Günlük kapanış raporu gönderildi!")
         _last_report_date = datetime.now(UTC_PLUS_3).date()
     else:
         print("❌ Rapor gönderilemedi!")
 
-    # Veri temizleme (her gun rapor sonrasi)
+    # Veri temizleme (her gün rapor sonrası)
     try:
         run_full_cleanup()
     except Exception as e:
@@ -186,40 +226,16 @@ def send_daily_report() -> bool:
     return success
 
 
-async def schedule_daily_report():
-    """
-    Her gün 20:30'da rapor gönder.
-    Bu fonksiyon ana monitor ile birlikte çalışır.
-    """
-    while True:
-        now = datetime.now()
-        target = now.replace(hour=REPORT_HOUR, minute=REPORT_MINUTE, second=0, microsecond=0)
-
-        # Eğer hedef saat geçtiyse, yarına ayarla
-        if now >= target:
-            target = target.replace(day=now.day + 1)
-
-        # Bekleme süresi
-        wait_seconds = (target - now).total_seconds()
-
-        print(f"⏰ Sonraki rapor: {target.strftime('%d.%m.%Y %H:%M')} ({wait_seconds/3600:.1f} saat sonra)")
-
-        # Bekle
-        await asyncio.sleep(wait_seconds)
-
-        # Rapor gönder
-        send_daily_report()
-
-
 def check_and_send_if_time():
     """
     Rapor zamanı geldi mi kontrol et.
     Polling-based sistemlerde kullanılır.
+    00:00-00:05 UTC+3 arası tetiklenir.
     """
     global _last_report_date
     now = datetime.now(UTC_PLUS_3)
 
-    # 20:30-20:35 arası mı?
+    # 00:00-00:05 arası mı?
     if now.hour == REPORT_HOUR and REPORT_MINUTE <= now.minute < REPORT_MINUTE + 5:
         # Bugün zaten gönderildi mi kontrol et
         if _last_report_date == now.date():
@@ -239,6 +255,3 @@ if __name__ == "__main__":
     # Test raporu oluştur
     report = generate_daily_report()
     print(report)
-
-    # Gönderme testi (yorum satırını kaldırarak test edilebilir)
-    # send_daily_report()
