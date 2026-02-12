@@ -4,8 +4,10 @@ Her gün 00:00 UTC+3'te Telegram'a günlük kapanış raporu gönderir.
 
 Format:
 - Bir önceki günün tüm alertleri token bazlı listelenir
-- Her token: alert MCap → ATH/ATL MCap, % değişim
+- Her token: alert MCap → güncel MCap, % değişim
 - Pozitif = W (Win), Negatif = L (Loss)
+- Trash call oranı
+- Cüzdan ekleme/çıkarma bilgisi
 - Toplam W/L sayısıyla biter
 """
 
@@ -24,7 +26,7 @@ from scripts.database import is_db_available, get_alerts_by_date_range
 REPORT_HOUR = 0
 REPORT_MINUTE = 0
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 UTC_PLUS_3 = timezone(timedelta(hours=3))
 
 # Bugün gönderildi mi flag
@@ -43,43 +45,59 @@ def _format_mcap(mcap: float) -> str:
         return "$0"
 
 
-def _fetch_token_ath_atl(token_address: str) -> dict:
-    """DexScreener'dan token'in mevcut MCap bilgisini al."""
+def _fetch_current_mcap(token_address: str) -> float:
+    """DexScreener'dan token'in güncel MCap bilgisini al."""
     try:
         from scripts.alert_analyzer import fetch_current_mcap
         data = fetch_current_mcap(token_address)
-        return {"current_mcap": data.get("mcap", 0)}
+        return data.get("mcap", 0)
     except Exception as e:
         print(f"⚠️ MCap fetch hatası ({token_address[:10]}...): {e}")
-        return {"current_mcap": 0}
+        return 0
 
 
 def _get_wallet_changes() -> str:
-    """Cüzdan ekleme/çıkarma bilgisini al (wallet_evaluator'dan)."""
+    """Cüzdan durumu: toplam sayı + varsa ekleme/çıkarma bilgisi."""
+    lines = []
+
+    # Toplam cüzdan sayısı (her zaman göster)
+    wallets_file = os.path.join(DATA_DIR, "data", "smart_money_final.json")
+    try:
+        with open(wallets_file, 'r') as f:
+            wallet_data = json.load(f)
+        total = len(wallet_data.get("wallets", []))
+        lines.append(f"👛 <b>Cüzdan:</b> {total} izleniyor")
+    except Exception:
+        pass
+
+    # Ekleme/çıkarma bilgisi (wallet_evaluator çalışmışsa)
     try:
         from scripts.wallet_evaluator import get_daily_wallet_report_summary
         summary = get_daily_wallet_report_summary()
         if summary and summary.strip():
-            # HTML formatına çevir
-            return summary.strip()
-        return ""
+            # "Cüzdan Durumu:" başlığını çıkar (çift başlık olmasın)
+            for line in summary.strip().split("\n"):
+                stripped = line.strip()
+                if stripped and "Cüzdan Durumu" not in stripped and "Toplam:" not in stripped:
+                    lines.append(stripped)
     except Exception:
-        return ""
+        pass
+
+    return "\n".join(lines) if lines else ""
 
 
 def _get_yesterday_alerts() -> list:
     """
     Dünün alertlerini DB'den çek (UTC+3 00:00 - 23:59).
-    Aynı token birden fazla kez alert olmuşsa gruplanır.
+    alert_snapshots + token_evaluations JOIN ile alert_mcap ve classification alır.
     """
     if not is_db_available():
         return []
 
-    # Dünün UTC+3 tarih aralığı
     now_tr = datetime.now(UTC_PLUS_3)
     yesterday_tr = now_tr - timedelta(days=1)
 
-    # UTC+3 00:00 → UTC olarak hesapla (UTC+3'ten 3 saat çıkar)
+    # UTC+3 00:00 → UTC (3 saat çıkar)
     start_tr = yesterday_tr.replace(hour=0, minute=0, second=0, microsecond=0)
     end_tr = now_tr.replace(hour=0, minute=0, second=0, microsecond=0)
 
@@ -96,7 +114,7 @@ def _build_token_summary(alerts: list) -> list:
     Aynı token birden fazla alert almışsa ilk alert_mcap kullanılır.
     DexScreener'dan güncel MCap çekilir.
     """
-    # Token bazında grupla (ilk alert_mcap'i tut)
+    # Token bazında grupla (ilk alert_mcap'i tut, classification al)
     token_map = {}
     for alert in alerts:
         addr = alert["token_address"]
@@ -107,41 +125,51 @@ def _build_token_summary(alerts: list) -> list:
                 "alert_mcap": alert["alert_mcap"],
                 "alert_count": 1,
                 "wallet_count": alert.get("wallet_count", 0),
+                "classification": alert.get("classification", "unknown"),
             }
         else:
             token_map[addr]["alert_count"] += 1
+            # İlk alert'te classification unknown ama sonraki doluysa güncelle
+            if token_map[addr]["classification"] == "unknown":
+                token_map[addr]["classification"] = alert.get("classification", "unknown")
 
     # Her token için güncel MCap çek
     results = []
     for addr, info in token_map.items():
-        # Rate limit: DexScreener'a 300ms arası
-        time.sleep(0.3)
+        time.sleep(0.3)  # DexScreener rate limit
 
-        current_data = _fetch_token_ath_atl(addr)
-        current_mcap = current_data["current_mcap"]
+        current_mcap = _fetch_current_mcap(addr)
         alert_mcap = info["alert_mcap"]
 
-        # % değişim hesapla
-        if alert_mcap > 0:
+        # alert_mcap=0 ise ve current_mcap var → fallback olarak current_mcap'i kullan
+        # ama bu durumda W/L hesaplanamaz, "N/A" göster
+        has_alert_mcap = alert_mcap > 0
+
+        if has_alert_mcap and alert_mcap > 0:
             change_pct = ((current_mcap - alert_mcap) / alert_mcap) * 100
         else:
-            change_pct = 0
+            change_pct = None  # Hesaplanamaz
 
-        # W veya L
-        is_win = change_pct >= 0
+        # W/L: change_pct None ise L say (veri eksik = başarısız)
+        if change_pct is not None:
+            is_win = change_pct > 0
+        else:
+            is_win = False
 
         results.append({
             "token_symbol": info["token_symbol"],
             "token_address": addr,
             "alert_mcap": alert_mcap,
             "current_mcap": current_mcap,
-            "change_pct": round(change_pct, 1),
+            "change_pct": round(change_pct, 1) if change_pct is not None else None,
             "is_win": is_win,
             "alert_count": info["alert_count"],
+            "classification": info["classification"],
+            "has_alert_mcap": has_alert_mcap,
         })
 
-    # Değişim yüzdesine göre sırala (en iyi → en kötü)
-    results.sort(key=lambda x: x["change_pct"], reverse=True)
+    # Değişim yüzdesine göre sırala (en iyi → en kötü, None'lar sona)
+    results.sort(key=lambda x: x["change_pct"] if x["change_pct"] is not None else -9999, reverse=True)
     return results
 
 
@@ -165,9 +193,20 @@ def generate_daily_report() -> str:
     # Token bazlı özet oluştur
     token_summary = _build_token_summary(alerts)
 
-    wins = sum(1 for t in token_summary if t["is_win"])
-    losses = sum(1 for t in token_summary if not t["is_win"])
-    total = len(token_summary)
+    # Toplam alert sayısı (snapshot bazlı, token bazlı değil)
+    total_alerts = len(alerts)
+
+    # W/L sayıları (sadece alert_mcap verisi olan tokenlar)
+    tokens_with_data = [t for t in token_summary if t["has_alert_mcap"]]
+    tokens_no_data = [t for t in token_summary if not t["has_alert_mcap"]]
+    wins = sum(1 for t in tokens_with_data if t["is_win"])
+    losses = sum(1 for t in tokens_with_data if not t["is_win"])
+    total_tokens = len(token_summary)
+
+    # Trash call hesabı (classification bazlı)
+    trash_count = sum(1 for t in token_summary if t["classification"] in ("not_short_list", "trash", "dead"))
+    success_count = sum(1 for t in token_summary if t["classification"] in ("short_list", "contracts_check"))
+    unknown_count = sum(1 for t in token_summary if t["classification"] in ("unknown",))
 
     # Rapor başlığı
     lines = [
@@ -178,21 +217,43 @@ def generate_daily_report() -> str:
 
     # Token listesi
     for t in token_summary:
-        emoji = "🟢" if t["is_win"] else "🔴"
-        wl = "W" if t["is_win"] else "L"
-        change_str = f"+{t['change_pct']:.0f}%" if t["change_pct"] >= 0 else f"{t['change_pct']:.0f}%"
+        symbol = t["token_symbol"]
         alert_mcap_str = _format_mcap(t["alert_mcap"])
         current_mcap_str = _format_mcap(t["current_mcap"])
 
-        line = f"{emoji} <b>{t['token_symbol']}</b> | {alert_mcap_str} → {current_mcap_str} ({change_str}) <b>{wl}</b>"
+        if t["has_alert_mcap"] and t["change_pct"] is not None:
+            emoji = "🟢" if t["is_win"] else "🔴"
+            wl = "W" if t["is_win"] else "L"
+            change_str = f"+{t['change_pct']:.0f}%" if t["change_pct"] >= 0 else f"{t['change_pct']:.0f}%"
+            line = f"{emoji} <b>{symbol}</b> | {alert_mcap_str} → {current_mcap_str} ({change_str}) <b>{wl}</b>"
+        else:
+            # alert_mcap yok — sadece güncel MCap göster
+            line = f"⚪ <b>{symbol}</b> | ? → {current_mcap_str} (veri yok)"
         lines.append(line)
 
-    # Toplam W/L
+    # Separator
     lines.append("")
     lines.append("━━━━━━━━━━━━━━━━━━━━")
 
-    win_rate = (wins / total * 100) if total > 0 else 0
-    lines.append(f"📈 <b>{wins}W</b> / <b>{losses}L</b> — {total} token ({win_rate:.0f}% başarı)")
+    # W/L özet
+    if tokens_with_data:
+        win_rate = (wins / len(tokens_with_data) * 100) if tokens_with_data else 0
+        lines.append(f"📈 <b>{wins}W</b> / <b>{losses}L</b> — {len(tokens_with_data)} token ({win_rate:.0f}% başarı)")
+    if tokens_no_data:
+        lines.append(f"⚪ {len(tokens_no_data)} token MCap verisi eksik")
+
+    # Trash call oranı
+    if trash_count > 0 or success_count > 0:
+        total_classified = trash_count + success_count
+        trash_pct = (trash_count / total_classified * 100) if total_classified > 0 else 0
+        lines.append(f"🗑️ Trash: {trash_count}/{total_classified} ({trash_pct:.0f}%) | ✅ Başarılı: {success_count}")
+        if unknown_count > 0:
+            lines.append(f"❓ Henüz değerlendirilmemiş: {unknown_count}")
+    elif unknown_count > 0:
+        lines.append(f"❓ {unknown_count} token henüz değerlendirilmemiş")
+
+    # Toplam alert sayısı (snapshot bazlı)
+    lines.append(f"📡 Toplam alert: {total_alerts} ({total_tokens} farklı token)")
 
     # Cüzdan ekleme/çıkarma bilgisi
     wallet_summary = _get_wallet_changes()
@@ -209,7 +270,6 @@ def send_daily_report() -> bool:
 
     print("\n📤 Günlük kapanış raporu gönderiliyor...")
 
-    # Rapor oluştur ve gönder
     report = generate_daily_report()
     success = send_telegram_message(report)
 
@@ -256,7 +316,6 @@ def check_and_send_if_time():
 
     # 00:00-00:05 arası mı?
     if now.hour == REPORT_HOUR and REPORT_MINUTE <= now.minute < REPORT_MINUTE + 5:
-        # Bugün zaten gönderildi mi kontrol et
         if _last_report_date == now.date():
             return False
 
@@ -271,6 +330,5 @@ if __name__ == "__main__":
     print("Daily Report Test")
     print("=" * 50)
 
-    # Test raporu oluştur
     report = generate_daily_report()
     print(report)

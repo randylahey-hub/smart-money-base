@@ -468,7 +468,8 @@ class SmartMoneyMonitor:
                         token_symbol=token_info.get('symbol', 'UNKNOWN'),
                         smart_money_purchases=wallet_purchases,
                         smart_money_wallets=self.wallets_set,
-                        current_block=self.w3.eth.block_number
+                        current_block=self.w3.eth.block_number,
+                        alert_mcap=int(current_mcap_val),
                     )
                 except Exception as e:
                     print(f"⚠️ Early detection v2 hatası: {e}")

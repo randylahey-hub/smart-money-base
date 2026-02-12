@@ -835,14 +835,11 @@ def cleanup_old_wallet_activity(days: int = 30) -> int:
 def get_alerts_by_date_range(start_utc: str, end_utc: str) -> list:
     """
     Belirli UTC tarih aralığındaki alert snapshot'larını getir.
-    Daily report için kullanılır (UTC+3 dönüşümü çağıran tarafta yapılır).
-
-    Args:
-        start_utc: Başlangıç (ISO format, UTC)
-        end_utc: Bitiş (ISO format, UTC)
+    token_evaluations'tan alert_mcap ve classification bilgisini LEFT JOIN ile çeker.
+    alert_snapshots.alert_mcap=0 ise token_evaluations'taki değeri kullanır.
 
     Returns:
-        list: [{token_address, token_symbol, alert_mcap, wallet_count, created_at}, ...]
+        list: [{token_address, token_symbol, alert_mcap, wallet_count, classification, created_at}, ...]
     """
     conn = get_connection()
     if not conn:
@@ -850,10 +847,23 @@ def get_alerts_by_date_range(start_utc: str, end_utc: str) -> list:
     try:
         cur = conn.cursor()
         cur.execute("""
-            SELECT token_address, token_symbol, alert_mcap, wallet_count, created_at
-            FROM alert_snapshots
-            WHERE created_at >= %s AND created_at < %s
-            ORDER BY created_at ASC
+            SELECT
+                a.token_address,
+                a.token_symbol,
+                CASE WHEN a.alert_mcap > 0 THEN a.alert_mcap ELSE COALESCE(te.alert_mcap, 0) END as alert_mcap,
+                a.wallet_count,
+                a.created_at,
+                te.classification
+            FROM alert_snapshots a
+            LEFT JOIN LATERAL (
+                SELECT alert_mcap, classification
+                FROM token_evaluations
+                WHERE token_address = a.token_address
+                ORDER BY ABS(EXTRACT(EPOCH FROM (alert_time - a.created_at))) ASC
+                LIMIT 1
+            ) te ON true
+            WHERE a.created_at >= %s AND a.created_at < %s
+            ORDER BY a.created_at ASC
         """, (start_utc, end_utc))
         rows = cur.fetchall()
         cur.close()
@@ -863,6 +873,7 @@ def get_alerts_by_date_range(start_utc: str, end_utc: str) -> list:
             "alert_mcap": r[2] or 0,
             "wallet_count": r[3] or 0,
             "created_at": r[4].isoformat() if r[4] else None,
+            "classification": r[5] or "unknown",
         } for r in rows]
     except Exception as e:
         print(f"⚠️ Date range alert sorgu hatası: {e}")
