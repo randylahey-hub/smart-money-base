@@ -660,7 +660,7 @@ class SmartMoneyMonitor:
                 # === TRADE SIGNAL - Senaryo 1 (Smart Money Alert) ===
                 try:
                     if not is_duplicate_signal(token_address):
-                        save_trade_signal(token_address, token_info.get('symbol', 'UNKNOWN'), current_mcap, "scenario_1", len(unique_wallets))
+                        save_trade_signal(token_address, token_info.get('symbol', 'UNKNOWN'), current_mcap_val, "scenario_1", len(unique_wallets))
                 except Exception as e:
                     print(f"⚠️ Trade signal S1 hatası: {e}")
 
