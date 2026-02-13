@@ -114,7 +114,7 @@ def _build_token_summary(alerts: list) -> list:
     Aynı token birden fazla alert almışsa ilk alert_mcap kullanılır.
     DexScreener'dan güncel MCap çekilir.
     """
-    # Token bazında grupla (ilk alert_mcap'i tut, classification al)
+    # Token bazında grupla (ilk alert_mcap'i tut, classification al, max ath_mcap)
     token_map = {}
     for alert in alerts:
         addr = alert["token_address"]
@@ -126,12 +126,17 @@ def _build_token_summary(alerts: list) -> list:
                 "alert_count": 1,
                 "wallet_count": alert.get("wallet_count", 0),
                 "classification": alert.get("classification", "unknown"),
+                "ath_mcap": alert.get("ath_mcap", 0),
             }
         else:
             token_map[addr]["alert_count"] += 1
             # İlk alert'te classification unknown ama sonraki doluysa güncelle
             if token_map[addr]["classification"] == "unknown":
                 token_map[addr]["classification"] = alert.get("classification", "unknown")
+            # En yüksek ATH MCap'i tut
+            new_ath = alert.get("ath_mcap", 0)
+            if new_ath > token_map[addr]["ath_mcap"]:
+                token_map[addr]["ath_mcap"] = new_ath
 
     # Her token için güncel MCap çek
     results = []
@@ -140,18 +145,31 @@ def _build_token_summary(alerts: list) -> list:
 
         current_mcap = _fetch_current_mcap(addr)
         alert_mcap = info["alert_mcap"]
+        ath_mcap = info.get("ath_mcap", 0)
 
-        # alert_mcap=0 ise ve current_mcap var → fallback olarak current_mcap'i kullan
-        # ama bu durumda W/L hesaplanamaz, "N/A" göster
+        # ATH MCap: DB'den gelen vs şu anki MCap — hangisi büyükse
+        if current_mcap > ath_mcap:
+            ath_mcap = current_mcap
+
+        # alert_mcap=0 ise W/L hesaplanamaz
         has_alert_mcap = alert_mcap > 0
 
-        if has_alert_mcap and alert_mcap > 0:
+        # HOLD senaryosu: alert → şu an
+        if has_alert_mcap:
             change_pct = ((current_mcap - alert_mcap) / alert_mcap) * 100
         else:
-            change_pct = None  # Hesaplanamaz
+            change_pct = None
 
-        # W/L: change_pct None ise L say (veri eksik = başarısız)
-        if change_pct is not None:
+        # ATH senaryosu: alert → max MCap (ideal sell)
+        if has_alert_mcap and ath_mcap > 0:
+            ath_change_pct = ((ath_mcap - alert_mcap) / alert_mcap) * 100
+        else:
+            ath_change_pct = None
+
+        # W/L: ATH bazlı (token en az bir kere yükseldiyse W)
+        if ath_change_pct is not None:
+            is_win = ath_change_pct > 0
+        elif change_pct is not None:
             is_win = change_pct > 0
         else:
             is_win = False
@@ -161,15 +179,17 @@ def _build_token_summary(alerts: list) -> list:
             "token_address": addr,
             "alert_mcap": alert_mcap,
             "current_mcap": current_mcap,
+            "ath_mcap": ath_mcap,
             "change_pct": round(change_pct, 1) if change_pct is not None else None,
+            "ath_change_pct": round(ath_change_pct, 1) if ath_change_pct is not None else None,
             "is_win": is_win,
             "alert_count": info["alert_count"],
             "classification": info["classification"],
             "has_alert_mcap": has_alert_mcap,
         })
 
-    # Değişim yüzdesine göre sırala (en iyi → en kötü, None'lar sona)
-    results.sort(key=lambda x: x["change_pct"] if x["change_pct"] is not None else -9999, reverse=True)
+    # ATH değişim yüzdesine göre sırala (en iyi → en kötü, None'lar sona)
+    results.sort(key=lambda x: x["ath_change_pct"] if x["ath_change_pct"] is not None else -9999, reverse=True)
     return results
 
 
@@ -215,19 +235,35 @@ def generate_daily_report() -> str:
         f"",
     ]
 
-    # Token listesi
+    # Token listesi — ATH (ideal sell) ve Current (hold) göster
     for t in token_summary:
         symbol = t["token_symbol"]
         alert_mcap_str = _format_mcap(t["alert_mcap"])
         current_mcap_str = _format_mcap(t["current_mcap"])
+        ath_mcap_str = _format_mcap(t["ath_mcap"])
 
-        if t["has_alert_mcap"] and t["change_pct"] is not None:
+        if t["has_alert_mcap"] and t["ath_change_pct"] is not None:
             emoji = "🟢" if t["is_win"] else "🔴"
             wl = "W" if t["is_win"] else "L"
+
+            # ATH satır (ana gösterge)
+            ath_str = f"+{t['ath_change_pct']:.0f}%" if t["ath_change_pct"] >= 0 else f"{t['ath_change_pct']:.0f}%"
+
+            # Current satır (hold durumu)
+            if t["change_pct"] is not None:
+                cur_str = f"+{t['change_pct']:.0f}%" if t["change_pct"] >= 0 else f"{t['change_pct']:.0f}%"
+            else:
+                cur_str = "?"
+
+            # Tek satır: Alert → ATH (peak %) | Şimdi (hold %)
+            line = f"{emoji} <b>{symbol}</b> | {alert_mcap_str} → 🔝{ath_mcap_str} ({ath_str}) 📍{current_mcap_str} ({cur_str}) <b>{wl}</b>"
+        elif t["has_alert_mcap"] and t["change_pct"] is not None:
+            # ATH yok ama current var
+            emoji = "🟢" if t["change_pct"] > 0 else "🔴"
+            wl = "W" if t["change_pct"] > 0 else "L"
             change_str = f"+{t['change_pct']:.0f}%" if t["change_pct"] >= 0 else f"{t['change_pct']:.0f}%"
             line = f"{emoji} <b>{symbol}</b> | {alert_mcap_str} → {current_mcap_str} ({change_str}) <b>{wl}</b>"
         else:
-            # alert_mcap yok — sadece güncel MCap göster
             line = f"⚪ <b>{symbol}</b> | ? → {current_mcap_str} (veri yok)"
         lines.append(line)
 
@@ -235,10 +271,10 @@ def generate_daily_report() -> str:
     lines.append("")
     lines.append("━━━━━━━━━━━━━━━━━━━━")
 
-    # W/L özet
+    # W/L özet (ATH bazlı — token yükseldiyse W)
     if tokens_with_data:
         win_rate = (wins / len(tokens_with_data) * 100) if tokens_with_data else 0
-        lines.append(f"📈 <b>{wins}W</b> / <b>{losses}L</b> — {len(tokens_with_data)} token ({win_rate:.0f}% başarı)")
+        lines.append(f"📈 <b>{wins}W</b> / <b>{losses}L</b> — {len(tokens_with_data)} token ({win_rate:.0f}% ATH başarı)")
     if tokens_no_data:
         lines.append(f"⚪ {len(tokens_no_data)} token MCap verisi eksik")
 

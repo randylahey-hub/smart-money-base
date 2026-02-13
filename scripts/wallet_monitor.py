@@ -166,11 +166,13 @@ class SmartMoneyMonitor:
         Pipeline'ların çalışıp çalışmadığını kontrol eder.
         Sorun tespit ederse Telegram'a alarm gönderir.
         """
+        from scripts.database import is_db_available
+        from scripts.mcap_checker import get_pending_count
+
         issues = []
 
         # 1. DB bağlantısı kontrol
         try:
-            from scripts.database import is_db_available
             if not is_db_available():
                 issues.append("❌ PostgreSQL bağlantısı yok!")
         except Exception as e:
@@ -178,8 +180,6 @@ class SmartMoneyMonitor:
 
         # 2. MCap checker pipeline kontrol
         try:
-            from scripts.mcap_checker import get_pending_count
-            # Sadece bilgi — pending>0 normal (bekleyen kontroller var)
             pending = get_pending_count()
             if pending > 50:
                 issues.append(f"⚠️ MCap checker birikme: {pending} bekleyen kontrol!")
@@ -210,6 +210,72 @@ class SmartMoneyMonitor:
             print(f"🚨 Watchdog: {len(issues)} sorun tespit edildi!")
         else:
             print(f"✅ Watchdog OK | {block_count} blok | MCap pending: {get_pending_count()}")
+
+    def _send_health_report(self, block_count: int, transfer_count: int):
+        """
+        Detaylı sistem sağlık raporu — günde 5 kez Telegram'a gönderir.
+        Her ~7200 blokta (~4.8 saat) tetiklenir.
+        """
+        from scripts.database import is_db_available, get_connection
+        from scripts.mcap_checker import get_pending_count
+
+        tr_now = datetime.now(timezone.utc) + timedelta(hours=3)
+        uptime_hours = block_count * 2 / 3600  # ~2sn/blok
+
+        lines = [
+            f"💚 <b>SİSTEM SAĞLIK RAPORU</b>",
+            f"🕐 {tr_now.strftime('%d.%m.%Y %H:%M')} UTC+3",
+            f"━━━━━━━━━━━━━━━━━━━━",
+        ]
+
+        # RPC durumu
+        try:
+            block = self.w3.eth.block_number
+            key_idx = self._api_key_index + 1
+            lines.append(f"🔗 RPC: ✅ Aktif (key #{key_idx}/{len(ALCHEMY_API_KEYS)}) | Blok: {block:,}")
+        except Exception:
+            lines.append(f"🔗 RPC: ❌ YANIT VERMİYOR")
+
+        # DB durumu
+        try:
+            if is_db_available():
+                conn = get_connection()
+                if conn:
+                    cur = conn.cursor()
+                    # Bugünkü alert sayısı
+                    cur.execute("SELECT COUNT(*) FROM alert_snapshots WHERE created_at >= NOW() - INTERVAL '24 hours'")
+                    alerts_24h = cur.fetchone()[0]
+                    # Bugünkü evaluation sayısı
+                    cur.execute("SELECT COUNT(*) FROM token_evaluations WHERE created_at >= NOW() - INTERVAL '24 hours'")
+                    evals_24h = cur.fetchone()[0]
+                    cur.close()
+                    lines.append(f"🗄️ DB: ✅ | 24s alert: {alerts_24h} | 24s eval: {evals_24h}")
+                else:
+                    lines.append(f"🗄️ DB: ❌ Bağlantı yok")
+            else:
+                lines.append(f"🗄️ DB: ❌ Erişilemez")
+        except Exception as e:
+            lines.append(f"🗄️ DB: ⚠️ {e}")
+
+        # MCap checker durumu
+        try:
+            pending = get_pending_count()
+            lines.append(f"📈 MCap Checker: ✅ | {pending} bekleyen kontrol")
+        except Exception:
+            lines.append(f"📈 MCap Checker: ❌ Erişilemez")
+
+        # Genel istatistikler
+        lines.append(f"━━━━━━━━━━━━━━━━━━━━")
+        lines.append(f"📊 {block_count:,} blok | {transfer_count:,} SM transfer")
+        lines.append(f"👛 {len(self.wallets)} cüzdan izleniyor")
+        lines.append(f"⏱️ Uptime: {uptime_hours:.1f} saat")
+
+        msg = "\n".join(lines)
+        try:
+            send_status_update(msg)
+            print(f"💚 Sağlık raporu gönderildi ({tr_now.strftime('%H:%M')})")
+        except Exception as e:
+            print(f"⚠️ Sağlık raporu gönderilemedi: {e}")
 
     def _clean_old_purchases(self):
         """TIME_WINDOW'dan eski alımları temizle."""
@@ -703,6 +769,10 @@ class SmartMoneyMonitor:
                     # === WATCHDOG: Her 500 blokta (~16dk) sistem sağlığı kontrolü ===
                     if block_count % 500 == 0 and block_count > 0:
                         self._run_watchdog(block_count, transfer_count)
+
+                    # === SAĞLIK RAPORU: Her 7200 blokta (~4.8 saat → günde ~5 kez) ===
+                    if block_count % 7200 == 0 and block_count > 0:
+                        self._send_health_report(block_count, transfer_count)
 
                     last_block = current_block
                     self._consecutive_rpc_errors = 0  # Başarılı → sıfırla

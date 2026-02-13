@@ -1,11 +1,13 @@
 """
 MCap Checker - Alert sonrası zamanlı MCap kontrolü.
 
-Gelecek alertler için:
-- 5dk sonra MCap kontrolü → short_list_tokens
-- 30dk sonra MCap kontrolü → contracts_check
+Kontrol noktaları:
+- 1dk: Erken fiyat hareketi
+- 5dk: short_list kontrolü (MCap +20%)
+- 15dk: Orta vade kontrol
+- 30dk: contracts_check kontrolü (MCap +50%)
 
-Ana monitoring loop'a entegre edilir.
+Her kontrol noktasında ATH MCap güncellenir.
 """
 
 import time
@@ -23,18 +25,19 @@ UTC_PLUS_3 = timezone(timedelta(hours=3))
 _pending_checks = deque()
 _lock = threading.Lock()
 
+# Kontrol noktaları: (süre_saniye, check_type, threshold)
+CHECK_POINTS = [
+    (60,   "1min",  None),                     # 1dk: sadece ATH takibi
+    (300,  "5min",  SHORT_LIST_THRESHOLD),      # 5dk: +20% → short_list
+    (900,  "15min", None),                     # 15dk: sadece ATH takibi
+    (1800, "30min", CONTRACTS_CHECK_THRESHOLD), # 30dk: +50% → contracts_check
+]
+
 
 def schedule_mcap_check(token_address: str, token_symbol: str, alert_mcap: int,
                          wallets_involved: list = None, alert_time: str = None):
     """
-    Alert sonrası 5dk ve 30dk MCap kontrolü planla.
-
-    Args:
-        token_address: Token contract adresi
-        token_symbol: Token sembolü
-        alert_mcap: Alert anındaki MCap
-        wallets_involved: Alım yapan cüzdanlar
-        alert_time: Alert zamanı (ISO format)
+    Alert sonrası tüm kontrol noktalarını planla.
     """
     now = time.time()
 
@@ -50,31 +53,22 @@ def schedule_mcap_check(token_address: str, token_symbol: str, alert_mcap: int,
     }
 
     with _lock:
-        # 5dk kontrolü
-        _pending_checks.append({
-            **check_data,
-            "check_type": "5min",
-            "check_at": now + 300,  # 5 dakika
-            "threshold": SHORT_LIST_THRESHOLD,
-        })
+        for delay_secs, check_type, threshold in CHECK_POINTS:
+            _pending_checks.append({
+                **check_data,
+                "check_type": check_type,
+                "check_at": now + delay_secs,
+                "threshold": threshold,
+            })
 
-        # 30dk kontrolü
-        _pending_checks.append({
-            **check_data,
-            "check_type": "30min",
-            "check_at": now + 1800,  # 30 dakika
-            "threshold": CONTRACTS_CHECK_THRESHOLD,
-        })
-
-    print(f"⏰ MCap check planlandı: {token_symbol} → 5dk ve 30dk sonra")
+    check_names = ", ".join(ct for _, ct, _ in CHECK_POINTS)
+    print(f"⏰ MCap check planlandı: {token_symbol} → {check_names}")
 
 
 def process_pending_checks() -> list:
     """
     Zamanı gelen kontrolleri işle.
     Ana monitoring loop'tan periyodik çağrılır.
-
-    Returns: İşlenen kontrollerin sonuçları
     """
     now = time.time()
     results = []
@@ -98,7 +92,7 @@ def process_pending_checks() -> list:
 
 
 def _execute_check(check: dict) -> dict:
-    """Tek bir MCap kontrolünü çalıştır."""
+    """Tek bir MCap kontrolünü çalıştır + ATH MCap güncelle."""
     token_addr = check["token_address"]
     token_symbol = check["token_symbol"]
     alert_mcap = check["alert_mcap"]
@@ -115,44 +109,45 @@ def _execute_check(check: dict) -> dict:
     else:
         change_pct = 0
 
-    # Sınıflandırma
-    if current_mcap <= DEAD_TOKEN_MCAP:
-        classification = "trash"
-        passed = False
-    elif change_pct >= threshold:
-        classification = "short_list" if check_type == "5min" else "contracts_check"
-        passed = True
-    else:
-        classification = "not_passed" if check_type == "5min" else "short_list_only"
-        passed = False
+    # Sınıflandırma (sadece threshold olan kontrol noktalarında)
+    classification = None
+    passed = False
 
-    # DB'ye kaydet
+    if threshold is not None:
+        if current_mcap <= DEAD_TOKEN_MCAP:
+            classification = "trash"
+        elif change_pct >= threshold:
+            classification = "short_list" if check_type == "5min" else "contracts_check"
+            passed = True
+        else:
+            classification = "not_short_list" if check_type == "5min" else "not_short_list"
+
+    # DB'ye kaydet + ATH MCap güncelle
+    save_kwargs = {
+        "token_address": token_addr,
+        "token_symbol": token_symbol,
+        "alert_mcap": alert_mcap,
+        "alert_time": check.get("alert_time"),
+        "ath_mcap": int(current_mcap),  # Her kontrol noktasında ATH güncelleme denenir
+    }
+
     if check_type == "5min":
-        save_token_evaluation(
-            token_address=token_addr,
-            token_symbol=token_symbol,
-            alert_mcap=alert_mcap,
-            alert_time=check.get("alert_time"),
-            mcap_5min=int(current_mcap),
-            change_5min_pct=round(change_pct * 100, 2),
-            classification=classification if check_type == "5min" else None,
-            wallets_involved=check.get("wallets_involved", [])
-        )
-    else:
-        save_token_evaluation(
-            token_address=token_addr,
-            token_symbol=token_symbol,
-            alert_mcap=alert_mcap,
-            alert_time=check.get("alert_time"),
-            mcap_30min=int(current_mcap),
-            change_30min_pct=round(change_pct * 100, 2),
-            classification=classification
-        )
+        save_kwargs["mcap_5min"] = int(current_mcap)
+        save_kwargs["change_5min_pct"] = round(change_pct * 100, 2)
+        save_kwargs["wallets_involved"] = check.get("wallets_involved", [])
+    elif check_type == "30min":
+        save_kwargs["mcap_30min"] = int(current_mcap)
+        save_kwargs["change_30min_pct"] = round(change_pct * 100, 2)
 
-    emoji = "✅" if passed else "❌"
+    if classification is not None:
+        save_kwargs["classification"] = classification
+
+    save_token_evaluation(**save_kwargs)
+
+    emoji = "✅" if passed else ("📊" if threshold is None else "❌")
     print(f"{emoji} MCap Check ({check_type}): {token_symbol} | "
           f"Alert: ${alert_mcap:,.0f} → Şimdi: ${current_mcap:,.0f} ({change_pct*100:+.1f}%) "
-          f"→ {classification}")
+          f"{'→ ' + classification if classification else ''}")
 
     return {
         "token_address": token_addr,

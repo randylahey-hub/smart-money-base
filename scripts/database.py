@@ -147,6 +147,12 @@ def init_db():
         cur.execute("CREATE INDEX IF NOT EXISTS idx_te_class ON token_evaluations(classification)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_te_alert_time ON token_evaluations(alert_time)")
 
+        # ath_mcap sütunu yoksa ekle (alert sonrası görülen en yüksek MCap)
+        try:
+            cur.execute("ALTER TABLE token_evaluations ADD COLUMN IF NOT EXISTS ath_mcap BIGINT DEFAULT 0")
+        except Exception:
+            pass
+
         cur.close()
         print(f"✅ Database tabloları hazır ({len(tables)} + trade_signals + wallet_activity + alert_snapshots + token_evaluations)")
         return True
@@ -611,7 +617,7 @@ def save_token_evaluation(token_address: str, token_symbol: str, alert_mcap: int
                           wallets_involved: list = None, alert_time: str = None,
                           mcap_5min: int = None, mcap_30min: int = None,
                           change_5min_pct: float = None, change_30min_pct: float = None,
-                          classification: str = None) -> bool:
+                          classification: str = None, ath_mcap: int = None) -> bool:
     """Token değerlendirme kaydı oluştur veya güncelle."""
     conn = get_connection()
     if not conn:
@@ -621,7 +627,7 @@ def save_token_evaluation(token_address: str, token_symbol: str, alert_mcap: int
 
         # Aynı token + alert_time var mı? (güncelleme için)
         cur.execute("""
-            SELECT id FROM token_evaluations
+            SELECT id, COALESCE(ath_mcap, 0) FROM token_evaluations
             WHERE token_address = %s AND alert_time = %s
             LIMIT 1
         """, (token_address.lower(), alert_time))
@@ -646,6 +652,12 @@ def save_token_evaluation(token_address: str, token_symbol: str, alert_mcap: int
             if classification is not None:
                 updates.append("classification = %s")
                 params.append(classification)
+            # ATH MCap: sadece mevcut değerden büyükse güncelle
+            if ath_mcap is not None:
+                current_ath = existing[1] or 0
+                if ath_mcap > current_ath:
+                    updates.append("ath_mcap = %s")
+                    params.append(ath_mcap)
             if updates:
                 params.append(existing[0])
                 cur.execute(f"UPDATE token_evaluations SET {', '.join(updates)} WHERE id = %s", params)
@@ -653,11 +665,12 @@ def save_token_evaluation(token_address: str, token_symbol: str, alert_mcap: int
             cur.execute("""
                 INSERT INTO token_evaluations
                     (token_address, token_symbol, alert_mcap, wallets_involved, alert_time,
-                     mcap_5min, mcap_30min, change_5min_pct, change_30min_pct, classification)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     mcap_5min, mcap_30min, change_5min_pct, change_30min_pct, classification, ath_mcap)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (token_address.lower(), token_symbol, alert_mcap,
                   Json(wallets_involved or []), alert_time,
-                  mcap_5min, mcap_30min, change_5min_pct, change_30min_pct, classification))
+                  mcap_5min, mcap_30min, change_5min_pct, change_30min_pct, classification,
+                  ath_mcap or alert_mcap))  # İlk kayıtta ath_mcap = alert_mcap
 
         cur.close()
         return True
@@ -853,10 +866,11 @@ def get_alerts_by_date_range(start_utc: str, end_utc: str) -> list:
                 CASE WHEN a.alert_mcap > 0 THEN a.alert_mcap ELSE COALESCE(te.alert_mcap, 0) END as alert_mcap,
                 a.wallet_count,
                 a.created_at,
-                te.classification
+                te.classification,
+                COALESCE(te.ath_mcap, 0) as ath_mcap
             FROM alert_snapshots a
             LEFT JOIN LATERAL (
-                SELECT alert_mcap, classification
+                SELECT alert_mcap, classification, ath_mcap
                 FROM token_evaluations
                 WHERE token_address = a.token_address
                 ORDER BY ABS(EXTRACT(EPOCH FROM (alert_time - a.created_at))) ASC
@@ -874,6 +888,7 @@ def get_alerts_by_date_range(start_utc: str, end_utc: str) -> list:
             "wallet_count": r[3] or 0,
             "created_at": r[4].isoformat() if r[4] else None,
             "classification": r[5] or "unknown",
+            "ath_mcap": r[6] or 0,
         } for r in rows]
     except Exception as e:
         print(f"⚠️ Date range alert sorgu hatası: {e}")
