@@ -34,6 +34,7 @@ from config.settings import (
     EXCLUDED_SYMBOLS,
     BLACKOUT_HOURS,
     BLACKOUT_EXTRA_THRESHOLD,
+    ALCHEMY_API_KEYS,
 )
 from scripts.telegram_alert import (
     send_smart_money_alert,
@@ -75,13 +76,17 @@ class SmartMoneyMonitor:
         # Son alert bilgileri: {token_address: {"time": timestamp, "mcap": mcap, "count": alert_count}}
         self.last_alerts = {}
 
-        # Web3 bağlantısı
+        # Web3 bağlantısı — multi-key failover
+        self._api_key_index = 0
+        self._consecutive_rpc_errors = 0
         self.w3 = Web3(Web3.HTTPProvider(BASE_RPC_HTTP))
         if self.w3.is_connected():
             print(f"✅ Base chain'e bağlandı (HTTP)")
             print(f"📦 Güncel blok: {self.w3.eth.block_number}")
+            print(f"🔑 Alchemy keys: {len(ALCHEMY_API_KEYS)} yedek hazır")
         else:
-            print(f"❌ Base chain bağlantısı başarısız!")
+            print(f"⚠️ İlk key başarısız, failover deneniyor...")
+            self._rotate_rpc_key()
 
     def _load_wallets(self, wallets_file: str) -> list:
         """Cüzdan listesini yükle."""
@@ -116,6 +121,95 @@ class SmartMoneyMonitor:
         except Exception as e:
             print(f"❌ Cüzdan dosyası yüklenemedi: {e}")
             return []
+
+    def _rotate_rpc_key(self):
+        """
+        Alchemy API key'i bir sonrakine çevir.
+        Kredi tükenme, rate limit veya bağlantı hatası durumunda çağrılır.
+        """
+        if len(ALCHEMY_API_KEYS) <= 1:
+            print("❌ Yedek Alchemy key yok! Tek key ile devam ediliyor.")
+            return False
+
+        old_index = self._api_key_index
+        self._api_key_index = (self._api_key_index + 1) % len(ALCHEMY_API_KEYS)
+        new_key = ALCHEMY_API_KEYS[self._api_key_index]
+        new_rpc = f"https://base-mainnet.g.alchemy.com/v2/{new_key}"
+
+        self.w3 = Web3(Web3.HTTPProvider(new_rpc))
+
+        if self.w3.is_connected():
+            print(f"🔄 RPC key değiştirildi: key #{old_index + 1} → key #{self._api_key_index + 1} ✅")
+            self._consecutive_rpc_errors = 0
+
+            # Telegram'a bildir
+            try:
+                send_status_update(
+                    f"🔑 Alchemy API key değişti!\n"
+                    f"• Eski: key #{old_index + 1} (tükendi/hata)\n"
+                    f"• Yeni: key #{self._api_key_index + 1}\n"
+                    f"• Toplam yedek: {len(ALCHEMY_API_KEYS)} key"
+                )
+            except Exception:
+                pass
+            return True
+        else:
+            print(f"❌ Key #{self._api_key_index + 1} de bağlanamadı!")
+            # Tüm key'leri dene
+            if self._api_key_index != old_index:
+                return self._rotate_rpc_key()
+            return False
+
+    def _run_watchdog(self, block_count: int, transfer_count: int):
+        """
+        Sistem sağlığı kontrolü — her ~16 dakikada bir çalışır.
+        Pipeline'ların çalışıp çalışmadığını kontrol eder.
+        Sorun tespit ederse Telegram'a alarm gönderir.
+        """
+        issues = []
+
+        # 1. DB bağlantısı kontrol
+        try:
+            from scripts.database import is_db_available
+            if not is_db_available():
+                issues.append("❌ PostgreSQL bağlantısı yok!")
+        except Exception as e:
+            issues.append(f"❌ DB kontrol hatası: {e}")
+
+        # 2. MCap checker pipeline kontrol
+        try:
+            from scripts.mcap_checker import get_pending_count
+            # Sadece bilgi — pending>0 normal (bekleyen kontroller var)
+            pending = get_pending_count()
+            if pending > 50:
+                issues.append(f"⚠️ MCap checker birikme: {pending} bekleyen kontrol!")
+        except Exception as e:
+            issues.append(f"❌ MCap checker erişilemez: {e}")
+
+        # 3. RPC sağlığı
+        try:
+            block = self.w3.eth.block_number
+            if block == 0:
+                issues.append("❌ RPC blok numarası 0!")
+        except Exception as e:
+            issues.append(f"❌ RPC yanıt vermiyor: {e}")
+
+        # Sorun varsa Telegram'a gönder
+        if issues:
+            alert_msg = (
+                f"🚨 <b>WATCHDOG ALARM</b>\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                + "\n".join(issues) + "\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"📊 {block_count} blok | {transfer_count} transfer"
+            )
+            try:
+                send_error_alert(alert_msg)
+            except Exception:
+                pass
+            print(f"🚨 Watchdog: {len(issues)} sorun tespit edildi!")
+        else:
+            print(f"✅ Watchdog OK | {block_count} blok | MCap pending: {get_pending_count()}")
 
     def _clean_old_purchases(self):
         """TIME_WINDOW'dan eski alımları temizle."""
@@ -504,17 +598,17 @@ class SmartMoneyMonitor:
                 except Exception as e:
                     print(f"⚠️ Trade signal S1 hatası: {e}")
 
-                # === SELF-IMPROVING ENGINE: MCap Timer ===
+                # === MCap CHECKER: 5dk + 30dk kalite kontrolü (CORE pipeline) ===
                 try:
-                    from scripts.self_improving_engine import run_per_alert_check
-                    run_per_alert_check(
+                    from scripts.mcap_checker import schedule_mcap_check
+                    schedule_mcap_check(
                         token_address=token_address,
                         token_symbol=token_info.get('symbol', 'UNKNOWN'),
-                        alert_mcap=int(current_mcap),
+                        alert_mcap=int(current_mcap_val),
                         wallets_involved=[p[0] for p in wallet_purchases]
                     )
                 except Exception as e:
-                    print(f"⚠️ Self-improving MCap timer hatası: {e}")
+                    print(f"⚠️ MCap checker planlama hatası: {e}")
             else:
                 print(f"❌ Alert gönderilemedi!")
 
@@ -584,29 +678,34 @@ class SmartMoneyMonitor:
                         transfer_count += transfers
                         block_count += 1
 
-                    # Her 50 blokta bir durum yazdır
+                    # Her 50 blokta bir durum yazdır + rutin görevler
                     if block_count % 50 == 0:
                         print(f"📊 {block_count} blok işlendi | {transfer_count} smart money transfer")
 
-                        # Günlük rapor kontrolü (20:30)
+                        # Günlük rapor kontrolü (00:00 UTC+3)
                         try:
                             check_and_send_if_time()
                         except Exception as e:
                             print(f"⚠️ Daily report hatası: {e}")
 
-                        # Self-improving engine: Bekleyen MCap check'leri
+                        # MCap checker: Bekleyen 5dk/30dk kontrolleri işle
                         try:
                             from scripts.mcap_checker import process_pending_checks, get_pending_count
                             pending = get_pending_count()
                             if pending > 0:
                                 results = process_pending_checks()
                                 if results:
-                                    print(f"📈 MCap check: {len(results)} token kontrol edildi ({pending - get_pending_count()} kalan)")
+                                    print(f"📈 MCap check: {len(results)} token kontrol edildi ({get_pending_count()} bekliyor)")
                         except Exception as e:
                             if "No module" not in str(e):
                                 print(f"⚠️ MCap checker hatası: {e}")
 
+                    # === WATCHDOG: Her 500 blokta (~16dk) sistem sağlığı kontrolü ===
+                    if block_count % 500 == 0 and block_count > 0:
+                        self._run_watchdog(block_count, transfer_count)
+
                     last_block = current_block
+                    self._consecutive_rpc_errors = 0  # Başarılı → sıfırla
 
                 # 2 saniye bekle
                 await asyncio.sleep(2)
@@ -616,8 +715,27 @@ class SmartMoneyMonitor:
                 send_status_update("🔴 Monitor durduruldu.")
                 break
             except Exception as e:
-                print(f"⚠️ Polling hatası: {e}")
-                await asyncio.sleep(5)
+                err_msg = str(e).lower()
+                self._consecutive_rpc_errors += 1
+                print(f"⚠️ Polling hatası ({self._consecutive_rpc_errors}x): {e}")
+
+                # RPC/Alchemy hata tespiti → key rotate
+                rpc_error_signals = ["429", "rate limit", "exceeded", "credit", "capacity", "timeout", "connection"]
+                is_rpc_error = any(s in err_msg for s in rpc_error_signals) or self._consecutive_rpc_errors >= 5
+
+                if is_rpc_error and len(ALCHEMY_API_KEYS) > 1:
+                    print(f"🔄 RPC hatası tespit edildi, key değiştiriliyor...")
+                    self._rotate_rpc_key()
+                    await asyncio.sleep(3)
+                else:
+                    await asyncio.sleep(5)
+
+                # Hata sayacı başarılı blokta sıfırlanır (normal akışta)
+                if self._consecutive_rpc_errors > 20:
+                    print(f"🚨 20+ ardışık RPC hatası! Tüm key'ler tükenmiş olabilir.")
+                    send_error_alert(f"🚨 20+ ardışık RPC hatası!\nTüm Alchemy key'ler yanıt vermiyor.\nSon hata: {e}")
+                    self._consecutive_rpc_errors = 0
+                    await asyncio.sleep(30)
 
     async def _process_block(self, block_number: int) -> int:
         """
