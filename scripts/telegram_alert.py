@@ -52,9 +52,68 @@ def format_number(num: float) -> str:
         return f"${num:.2f}"
 
 
+def _select_best_pair(pairs: list) -> dict:
+    """
+    DexScreener pair listesinden en güvenilir pair'i seç.
+
+    Strateji:
+    1. Base chain pair'lerini filtrele
+    2. WETH/ETH quote pair'lerini tercih et (en doğru MCap)
+    3. Minimum $500 likidite eşiği (dust pair'leri ele)
+    4. Kalan pair'ler arasından en yüksek likiditeyi seç
+    5. MCap: Seçilen pair'in MCap'i, tüm kaliteli pair'lerdeki max MCap ile karşılaştırılır
+    """
+    if not pairs:
+        return None
+
+    # Base chain pair'lerini filtrele
+    base_pairs = [p for p in pairs if p.get('chainId') == 'base']
+    if not base_pairs:
+        base_pairs = pairs  # Base yoksa tümünü kullan
+
+    # Likidite $500+ olan pair'ler (dust pair'leri ele)
+    MIN_PAIR_LIQUIDITY = 500
+    quality_pairs = [
+        p for p in base_pairs
+        if float(p.get('liquidity', {}).get('usd', 0) or 0) >= MIN_PAIR_LIQUIDITY
+    ]
+    if not quality_pairs:
+        quality_pairs = base_pairs  # Kaliteli yoksa tümünü kullan
+
+    # WETH/ETH quote pair'lerini tercih et
+    WETH_SYMBOLS = {'WETH', 'ETH'}
+    weth_pairs = [
+        p for p in quality_pairs
+        if p.get('quoteToken', {}).get('symbol', '').upper() in WETH_SYMBOLS
+    ]
+
+    # WETH pair varsa onlar arasından, yoksa tüm kaliteli pair'ler arasından seç
+    candidate_pairs = weth_pairs if weth_pairs else quality_pairs
+
+    # En yüksek likiditeye sahip pair'i seç (ana veri kaynağı)
+    best_pair = max(candidate_pairs, key=lambda x: float(x.get('liquidity', {}).get('usd', 0) or 0))
+
+    # MCap doğrulama: Tüm kaliteli pair'lerdeki en yüksek MCap'i bul
+    # DexScreener bazen gecikmeli güncelliyor, en güncel MCap genelde en yüksek olan
+    best_mcap = float(best_pair.get('marketCap', 0) or best_pair.get('fdv', 0) or 0)
+    for p in quality_pairs:
+        p_mcap = float(p.get('marketCap', 0) or p.get('fdv', 0) or 0)
+        p_liq = float(p.get('liquidity', {}).get('usd', 0) or 0)
+        # Sadece anlamlı likiditeye sahip pair'lerin MCap'ini dikkate al
+        if p_liq >= MIN_PAIR_LIQUIDITY and p_mcap > best_mcap:
+            best_mcap = p_mcap
+
+    # Best pair'in MCap'ini en yüksek kaliteli değerle güncelle
+    best_pair = dict(best_pair)  # Kopyala (orijinali bozma)
+    best_pair['_corrected_mcap'] = best_mcap
+
+    return best_pair
+
+
 def get_token_info_dexscreener(token_address: str) -> dict:
     """
     DEXScreener API'den token bilgisi al.
+    Birden fazla pair varsa en güvenilir olanı seçer.
 
     Returns:
         dict: {symbol, name, mcap, price, liquidity}
@@ -65,20 +124,22 @@ def get_token_info_dexscreener(token_address: str) -> dict:
         data = response.json()
 
         if data.get('pairs') and len(data['pairs']) > 0:
-            # En yüksek likiditeye sahip pair'i seç
-            pair = max(data['pairs'], key=lambda x: float(x.get('liquidity', {}).get('usd', 0) or 0))
-            return {
-                'symbol': pair.get('baseToken', {}).get('symbol', 'UNKNOWN'),
-                'name': pair.get('baseToken', {}).get('name', 'Unknown Token'),
-                'mcap': float(pair.get('marketCap', 0) or 0),
-                'price': float(pair.get('priceUsd', 0) or 0),
-                'liquidity': float(pair.get('liquidity', {}).get('usd', 0) or 0),
-                'price_change_24h': float(pair.get('priceChange', {}).get('h24', 0) or 0),
-                'volume_24h': float(pair.get('volume', {}).get('h24', 0) or 0),
-                'txns_24h_buys': int(pair.get('txns', {}).get('h24', {}).get('buys', 0) or 0),
-                'txns_24h_sells': int(pair.get('txns', {}).get('h24', {}).get('sells', 0) or 0),
-                'pair_address': pair.get('pairAddress', '')
-            }
+            pair = _select_best_pair(data['pairs'])
+            if pair:
+                # _corrected_mcap varsa onu kullan (multi-pair doğrulama)
+                mcap = pair.get('_corrected_mcap', 0) or float(pair.get('marketCap', 0) or pair.get('fdv', 0) or 0)
+                return {
+                    'symbol': pair.get('baseToken', {}).get('symbol', 'UNKNOWN'),
+                    'name': pair.get('baseToken', {}).get('name', 'Unknown Token'),
+                    'mcap': mcap,
+                    'price': float(pair.get('priceUsd', 0) or 0),
+                    'liquidity': float(pair.get('liquidity', {}).get('usd', 0) or 0),
+                    'price_change_24h': float(pair.get('priceChange', {}).get('h24', 0) or 0),
+                    'volume_24h': float(pair.get('volume', {}).get('h24', 0) or 0),
+                    'txns_24h_buys': int(pair.get('txns', {}).get('h24', {}).get('buys', 0) or 0),
+                    'txns_24h_sells': int(pair.get('txns', {}).get('h24', {}).get('sells', 0) or 0),
+                    'pair_address': pair.get('pairAddress', '')
+                }
     except Exception as e:
         print(f"DEXScreener API hatası: {e}")
 
