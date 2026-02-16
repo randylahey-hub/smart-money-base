@@ -25,9 +25,9 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 UTC_PLUS_3 = timezone(timedelta(hours=3))
 
 # Eşikler
-TRASH_WARN_THRESHOLD = 0.70      # %70+ trash oranı → uyarı
-TRASH_REMOVE_THRESHOLD = 0.90    # %90+ trash oranı → çıkarma
-MIN_APPEARANCES_FOR_REMOVAL = 5  # Minimum 5 alert'te görünmüş olmalı
+TRASH_WARN_THRESHOLD = 0.60      # %60+ trash oranı → uyarı
+TRASH_REMOVE_THRESHOLD = 0.80    # %80+ trash oranı → çıkarma
+MIN_APPEARANCES_FOR_REMOVAL = 3  # Minimum 3 alert'te görünmüş olmalı
 MIN_WALLET_COUNT = 50            # Minimum cüzdan sayısı korunur
 
 
@@ -81,9 +81,15 @@ def evaluate_wallet_quality(wallet_address: str, token_evaluations: list = None,
         token_classes[te["token_address"]] = te.get("classification", "unknown")
 
     # Sayımlar
-    short_list_hits = sum(1 for t in wallet_tokens if token_classes.get(t) in ("short_list", "contracts_check"))
+    # short_list veya contracts_check = başarılı sinyal
+    # short_list_only = 5dk'da +%20 ama 30dk'da +%50 değil (kısmen başarılı)
+    # not_short_list = başarısız sinyal (trash sayılır)
+    # trash = token öldü (MCap < $20K, kesinlikle trash)
+    GOOD_CLASSES = ("short_list", "contracts_check", "short_list_only")
+    BAD_CLASSES = ("not_short_list", "trash")
+    short_list_hits = sum(1 for t in wallet_tokens if token_classes.get(t) in GOOD_CLASSES)
     contracts_check_hits = sum(1 for t in wallet_tokens if token_classes.get(t) == "contracts_check")
-    trash_hits = sum(1 for t in wallet_tokens if token_classes.get(t) == "trash")
+    trash_hits = sum(1 for t in wallet_tokens if token_classes.get(t) in BAD_CLASSES)
     total = len(wallet_tokens)
 
     hit_rate = short_list_hits / total if total > 0 else 0

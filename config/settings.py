@@ -165,9 +165,9 @@ CONTRACTS_CHECK_THRESHOLD = float(os.getenv("CONTRACTS_CHECK_THRESHOLD", "0.50")
 DEAD_TOKEN_MCAP = int(os.getenv("DEAD_TOKEN_MCAP", "20000"))  # $20K altı = ölü token
 
 # Cüzdan değerlendirme eşikleri
-TRASH_WARN_THRESHOLD = float(os.getenv("TRASH_WARN_THRESHOLD", "0.70"))  # %70 trash → uyarı
-TRASH_REMOVE_THRESHOLD = float(os.getenv("TRASH_REMOVE_THRESHOLD", "0.90"))  # %90 trash → çıkarma
-MIN_APPEARANCES_FOR_REMOVAL = int(os.getenv("MIN_APPEARANCES_FOR_REMOVAL", "5"))
+TRASH_WARN_THRESHOLD = float(os.getenv("TRASH_WARN_THRESHOLD", "0.60"))  # %60 trash → uyarı
+TRASH_REMOVE_THRESHOLD = float(os.getenv("TRASH_REMOVE_THRESHOLD", "0.80"))  # %80 trash → çıkarma
+MIN_APPEARANCES_FOR_REMOVAL = int(os.getenv("MIN_APPEARANCES_FOR_REMOVAL", "3"))
 
 # Cüzdan keşif filtreleri
 DISCOVER_MIN_BUY_USD = int(os.getenv("DISCOVER_MIN_BUY_USD", "50"))  # Min $50 alım
