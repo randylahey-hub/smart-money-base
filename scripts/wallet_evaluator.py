@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.database import (
     get_all_token_evaluations,
     get_wallet_alert_participation,
+    get_all_alert_snapshots,
     is_db_available
 )
 
@@ -29,6 +30,7 @@ TRASH_WARN_THRESHOLD = 0.60      # %60+ trash oranı → uyarı
 TRASH_REMOVE_THRESHOLD = 0.80    # %80+ trash oranı → çıkarma
 MIN_APPEARANCES_FOR_REMOVAL = 3  # Minimum 3 alert'te görünmüş olmalı
 MIN_WALLET_COUNT = 50            # Minimum cüzdan sayısı korunur
+INACTIVE_DAYS_THRESHOLD = 14     # 14 gün hiç alert'te görünmediyse pasif → çıkar
 
 
 def evaluate_wallet_quality(wallet_address: str, token_evaluations: list = None,
@@ -90,7 +92,11 @@ def evaluate_wallet_quality(wallet_address: str, token_evaluations: list = None,
     short_list_hits = sum(1 for t in wallet_tokens if token_classes.get(t) in GOOD_CLASSES)
     contracts_check_hits = sum(1 for t in wallet_tokens if token_classes.get(t) == "contracts_check")
     trash_hits = sum(1 for t in wallet_tokens if token_classes.get(t) in BAD_CLASSES)
-    total = len(wallet_tokens)
+
+    # total = sadece sınıflandırılmış token sayısı (bilinmeyenler hariç)
+    # Bu sayede henüz MCap check yapılmamış token'lar sonucu bozmaz
+    classified_tokens = sum(1 for t in wallet_tokens if token_classes.get(t) in GOOD_CLASSES + BAD_CLASSES)
+    total = classified_tokens if classified_tokens > 0 else len(wallet_tokens)
 
     hit_rate = short_list_hits / total if total > 0 else 0
     trash_rate = trash_hits / total if total > 0 else 0
@@ -109,7 +115,7 @@ def evaluate_wallet_quality(wallet_address: str, token_evaluations: list = None,
 
     return {
         "address": wallet_addr,
-        "total_appearances": total,
+        "total_appearances": classified_tokens,
         "short_list_hits": short_list_hits,
         "contracts_check_hits": contracts_check_hits,
         "trash_hits": trash_hits,
@@ -161,6 +167,35 @@ def run_daily_wallet_evaluation() -> dict:
     warn_count = sum(1 for e in evaluations if e["flag"] == "warn")
     remove_count = sum(1 for e in evaluations if e["flag"] == "remove")
     no_data = sum(1 for e in evaluations if e["total_appearances"] == 0)
+
+    # Pasif cüzdan kontrolü: bot yeterince uzun süredir çalışıyorsa,
+    # hiç alert'te görünmeyen cüzdanları da çıkarma listesine ekle
+    inactive_removed = 0
+    if no_data > 0 and is_db_available():
+        try:
+            snapshots = get_all_alert_snapshots()
+            if snapshots:
+                first_alert = snapshots[0].get("created_at", "")
+                if first_alert:
+                    first_date = datetime.fromisoformat(first_alert) if isinstance(first_alert, str) else first_alert
+                    if first_date.tzinfo is None:
+                        first_date = first_date.replace(tzinfo=UTC_PLUS_3)
+                    bot_running_days = (datetime.now(UTC_PLUS_3) - first_date).days
+                    if bot_running_days >= INACTIVE_DAYS_THRESHOLD:
+                        # Yeterince veri birikmiş, pasif cüzdanları flagle
+                        for ev in evaluations:
+                            if ev["total_appearances"] == 0:
+                                ev["flag"] = "remove"
+                                ev["inactive"] = True
+                        inactive_count = sum(1 for e in evaluations if e.get("inactive"))
+                        print(f"📭 {inactive_count} pasif cüzdan (bot {bot_running_days} gündür çalışıyor, {INACTIVE_DAYS_THRESHOLD} gün eşiği aşıldı)")
+                    else:
+                        print(f"📭 {no_data} pasif cüzdan var ama bot henüz {bot_running_days} gündür çalışıyor ({INACTIVE_DAYS_THRESHOLD} gün bekleniyor)")
+        except Exception as e:
+            print(f"⚠️ Pasif cüzdan kontrolü hatası: {e}")
+
+    # İstatistikleri güncelle (pasif cüzdanlar da remove olabilir)
+    remove_count = sum(1 for e in evaluations if e["flag"] == "remove")
 
     # Çıkarılacak cüzdanlar
     wallets_to_remove = [e["address"] for e in evaluations if e["flag"] == "remove"]

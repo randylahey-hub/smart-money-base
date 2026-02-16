@@ -314,11 +314,12 @@ def is_organic_buyer(address: str, buy_value_usd: float = 0) -> dict:
 
 def discover_new_wallets(contracts_check_tokens: list = None) -> dict:
     """
-    contracts_check tokenlarının ilk alıcılarından yeni cüzdanlar keşfet.
+    Başarılı tokenların ilk alıcılarından yeni cüzdanlar keşfet.
+    Kaynak: contracts_check + short_list token'ları (her ikisi de başarılı sinyaller).
 
     Args:
         contracts_check_tokens: [{"token_address": "0x...", "token_symbol": "..."}, ...]
-                                 None ise data/contracts_check.json'dan yükler.
+                                 None ise data/ dosyalarından yükler.
 
     Returns:
         {"discovered": int, "added": int, "rejected": int, "wallets": [...]}
@@ -327,18 +328,24 @@ def discover_new_wallets(contracts_check_tokens: list = None) -> dict:
     print("🔍 YENİ CÜZDAN KEŞFİ")
     print("=" * 60)
 
-    # Contracts check listesini yükle
+    # Başarılı token listelerini yükle (contracts_check + short_list)
     if contracts_check_tokens is None:
+        contracts_check_tokens = []
+
+        # 1. contracts_check (en iyi tokenlar: +%50 in 30dk)
         cc_file = os.path.join(DATA_DIR, "contracts_check.json")
         if os.path.exists(cc_file):
             with open(cc_file, 'r') as f:
-                contracts_check_tokens = json.load(f)
-        else:
-            print("❌ contracts_check.json bulunamadı")
-            return {"error": "No contracts_check data"}
+                contracts_check_tokens.extend(json.load(f))
+
+        # 2. short_list (iyi tokenlar: +%20 in 5dk)
+        sl_file = os.path.join(DATA_DIR, "short_list_tokens.json")
+        if os.path.exists(sl_file):
+            with open(sl_file, 'r') as f:
+                contracts_check_tokens.extend(json.load(f))
 
     if not contracts_check_tokens:
-        print("❌ contracts_check listesi boş")
+        print("❌ Başarılı token listesi boş")
         return {"discovered": 0, "added": 0, "rejected": 0, "wallets": []}
 
     # Mevcut smart money listesini yükle (duplike kontrolü)

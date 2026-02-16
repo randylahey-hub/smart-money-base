@@ -321,12 +321,17 @@ def send_daily_report() -> bool:
     except Exception as e:
         print(f"⚠️ Cleanup hatası: {e}")
 
-    # Self-improving engine günlük değerlendirme
+    # Self-improving engine
     try:
-        from scripts.self_improving_engine import run_daily_evaluation, SELF_IMPROVE_ENABLED
+        from scripts.self_improving_engine import run_daily_evaluation, run_full_cycle, SELF_IMPROVE_ENABLED
         if SELF_IMPROVE_ENABLED:
-            print("\n🔄 Self-improving engine günlük değerlendirme...")
-            run_daily_evaluation()
+            now_tr = datetime.now(UTC_PLUS_3)
+            if now_tr.weekday() == 6:  # Pazar = tam döngü (analiz + keşif + temizlik)
+                print("\n🔄 Self-improving engine HAFTALIK TAM DÖNGÜ (Pazar)...")
+                run_full_cycle()
+            else:
+                print("\n🔄 Self-improving engine günlük değerlendirme...")
+                run_daily_evaluation()
     except Exception as e:
         print(f"⚠️ Self-improving engine hatası: {e}")
 
