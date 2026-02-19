@@ -16,7 +16,7 @@ from datetime import datetime, timezone, timedelta
 from collections import deque
 
 from scripts.alert_analyzer import fetch_current_mcap, SHORT_LIST_THRESHOLD, CONTRACTS_CHECK_THRESHOLD, DEAD_TOKEN_MCAP
-from scripts.database import save_token_evaluation
+from scripts.database import save_token_evaluation, get_signal_by_token_recent, approve_signal
 
 # UTC+3
 UTC_PLUS_3 = timezone(timedelta(hours=3))
@@ -143,6 +143,32 @@ def _execute_check(check: dict) -> dict:
         save_kwargs["classification"] = classification
 
     save_token_evaluation(**save_kwargs)
+
+    # --- TRADING HOOK: 5dk check pozitifse, bekleyen sinyali onayla ---
+    if check_type == "5min":
+        try:
+            from config.settings import ACTIVE_STRATEGY, get_active_strategy_config
+            strategy = get_active_strategy_config()
+            min_change = strategy.get("min_5min_change_pct")
+
+            # Sadece Confirmation Sniper stratejisinde hook aktif
+            if ACTIVE_STRATEGY == "confirmation_sniper" and min_change is not None:
+                change_pct_100 = round(change_pct * 100, 2)
+                signal = get_signal_by_token_recent(token_addr, max_age_seconds=600)
+
+                if signal and signal["status"] == "pending_confirmation":
+                    if change_pct_100 >= min_change:
+                        # MCap check geçti → sinyali onayla
+                        approve_signal(signal["id"], {
+                            "mcap_5min": int(current_mcap),
+                            "change_5min_pct": change_pct_100,
+                            "approved_at": datetime.now(UTC_PLUS_3).isoformat()
+                        })
+                        print(f"🎯 SNIPER HOOK: {token_symbol} +{change_pct_100:.1f}% → trade onaylandı!")
+                    else:
+                        print(f"⏭️ SNIPER HOOK: {token_symbol} +{change_pct_100:.1f}% < +{min_change}% → skip")
+        except Exception as e:
+            print(f"⚠️ Trading hook hatası: {e}")
 
     emoji = "✅" if passed else ("📊" if threshold is None else "❌")
     print(f"{emoji} MCap Check ({check_type}): {token_symbol} | "

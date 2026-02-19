@@ -177,3 +177,62 @@ NEW_WALLET_WEEKLY_LIMIT = int(os.getenv("NEW_WALLET_WEEKLY_LIMIT", "80"))
 
 # Basescan API Key (merkezi)
 ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY", "6TE7PX7TDS777Z3T7NQCZVUK4KBK9HHDJQ")
+
+# =============================================================================
+# TRADING STRATEJİ AYARLARI
+# =============================================================================
+# Aktif strateji: "confirmation_sniper" veya "speed_demon"
+ACTIVE_STRATEGY = os.getenv("ACTIVE_STRATEGY", "confirmation_sniper")
+
+# --- Strateji 1: Confirmation Sniper (Konservatif) ---
+SNIPER_CONFIG = {
+    "name": "Confirmation Sniper",
+    "trade_size_eth": 0.005,        # Her trade'de 0.005 ETH
+    "max_positions": 3,              # Max 3 açık pozisyon
+    "max_exposure_eth": 0.015,       # Toplam max exposure
+    "max_daily_loss_eth": 0.01,      # Günlük kayıp limiti
+    # Giriş koşulları
+    "min_5min_change_pct": 10.0,     # 5dk'da min +%10 yükselmiş olmalı
+    "min_mcap": 30000,               # Min MCap $30K
+    "max_mcap": 300000,              # Max MCap $300K
+    "min_wallet_count": 3,           # Min cüzdan sayısı
+    "active_hours": (8, 22),         # UTC+3 aktif saat aralığı
+    # TP/SL
+    "tp_levels": [
+        {"multiplier": 1.8, "sell_pct": 40},   # 1.8x → %40 sat
+        {"multiplier": 2.5, "sell_pct": 30},   # 2.5x → %30 sat
+        {"multiplier": 4.0, "sell_pct": 30},   # 4.0x → %30 sat (moon bag)
+    ],
+    "sl_multiplier": 0.65,           # -35% stop loss
+    "time_sl_minutes": 30,           # 30dk TP1 yoksa çık
+}
+
+# --- Strateji 2: Speed Demon (Agresif) ---
+DEMON_CONFIG = {
+    "name": "Speed Demon",
+    "trade_size_eth": 0.003,         # Daha küçük pozisyon
+    "max_positions": 5,              # Daha fazla pozisyon
+    "max_exposure_eth": 0.015,       # Toplam max exposure
+    "max_daily_loss_eth": 0.01,      # Günlük kayıp limiti
+    # Giriş koşulları
+    "min_5min_change_pct": None,     # Filtresiz — anında gir
+    "min_mcap": 30000,               # Min MCap $30K
+    "max_mcap": 200000,              # Max MCap $200K (daha düşük = daha yüksek çarpan)
+    "min_wallet_count": 3,           # Min cüzdan sayısı
+    "active_hours": None,            # Saat filtresi yok (blackout hours hariç)
+    # TP/SL
+    "tp_levels": [
+        {"multiplier": 2.0, "sell_pct": 30},   # 2.0x → %30 sat
+        {"multiplier": 3.5, "sell_pct": 30},   # 3.5x → %30 sat
+        {"multiplier": 6.0, "sell_pct": 40},   # 6.0x → %40 sat (moon bag)
+    ],
+    "sl_multiplier": 0.55,           # -45% stop loss
+    "time_sl_minutes": 60,           # 60dk TP1 yoksa çık
+    "consecutive_sl_cooldown": 3,    # 3 ardışık SL → 1 saat soğukluk
+}
+
+def get_active_strategy_config() -> dict:
+    """Aktif stratejinin konfigürasyonunu döndür."""
+    if ACTIVE_STRATEGY == "speed_demon":
+        return DEMON_CONFIG
+    return SNIPER_CONFIG  # Default: confirmation_sniper

@@ -1,9 +1,12 @@
 """
-Trade Bot - Alert Bot'tan bağımsız çalışan gerçek trading botu.
-PostgreSQL üzerinden trade sinyallerini okur ve Uniswap V3 ile işlem yapar.
+Trade Bot v2 — Strateji Bazlı Trading Bot
 
 Alert Bot (wallet_monitor.py) → DB'ye trade_signal yazar
-Trade Bot (bu dosya) → DB'den sinyal okur → buy/sell yapar → TP/SL izler
+Trade Bot (bu dosya) → DB'den sinyal okur → strateji kurallarına göre işlem yapar
+
+Strateji Modları:
+- confirmation_sniper: Sadece 'approved' sinyalleri işler (5dk MCap check geçmiş)
+- speed_demon: 'pending' sinyalleri anında işler (mevcut davranış)
 
 Koyeb'de ayrı Worker servis olarak çalışır.
 """
@@ -13,53 +16,59 @@ import sys
 import os
 from datetime import datetime, timezone, timedelta
 
-# Config'i import et
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config.settings import REAL_TRADING_ENABLED, DATABASE_URL
+from config.settings import (
+    REAL_TRADING_ENABLED, DATABASE_URL,
+    ACTIVE_STRATEGY, get_active_strategy_config
+)
 from scripts.database import (
     init_db,
     is_db_available,
     get_pending_signals,
+    get_approved_signals,
     update_signal_status,
     expire_old_signals,
-    is_duplicate_signal
 )
 from scripts.telegram_alert import send_status_update, send_error_alert
-from scripts.real_trade_config import (
-    REAL_TRADE_SIZE_ETH,
-    MAX_OPEN_POSITIONS,
-    MAX_TOTAL_EXPOSURE_ETH,
-    MAX_DAILY_LOSS_ETH,
-    POSITION_CHECK_INTERVAL
-)
+from scripts.real_trade_config import POSITION_CHECK_INTERVAL
+from scripts.virtual_trader import get_trader as get_virtual_trader
 
-# Flush için
 sys.stdout.reconfigure(line_buffering=True)
 
 # Signal polling interval (saniye)
 SIGNAL_POLL_INTERVAL = 5
 
-# Eski sinyalleri expire etme süresi (saniye)
-SIGNAL_EXPIRY_SECONDS = 300  # 5 dakika
+# Virtual trader TP/SL check interval (saniye)
+VIRTUAL_CHECK_INTERVAL = 30
 
 
-async def poll_trade_signals(trader):
+async def poll_trade_signals(real_trader):
     """
-    DB'den pending trade sinyallerini okur ve işlem yapar.
-    Her 5 saniyede bir kontrol eder.
+    DB'den sinyal okur ve strateji bazlı işlem yapar.
+
+    confirmation_sniper: status='approved' sinyalleri (5dk MCap check geçmiş)
+    speed_demon: status='pending' sinyalleri (anında)
     """
-    print("📡 Signal poller başladı (her 5 saniye)...")
+    strategy_config = get_active_strategy_config()
+    strategy_name = strategy_config["name"]
+    v_trader = get_virtual_trader()
+
+    print(f"📡 Signal poller başladı | Strateji: {strategy_name} | Her {SIGNAL_POLL_INTERVAL}sn...")
+
     processed_count = 0
     skipped_count = 0
 
     while True:
         try:
-            # Önce eski sinyalleri expire et
-            expired = expire_old_signals(SIGNAL_EXPIRY_SECONDS)
+            # Eski sinyalleri expire et
+            expire_old_signals(300)
 
-            # Pending sinyalleri al
-            signals = get_pending_signals(max_age_seconds=SIGNAL_EXPIRY_SECONDS)
+            # Aktif stratejiye göre sinyal al
+            if ACTIVE_STRATEGY == "confirmation_sniper":
+                signals = get_approved_signals(max_age_seconds=600)
+            else:  # speed_demon
+                signals = get_pending_signals(max_age_seconds=300)
 
             for signal in signals:
                 signal_id = signal['id']
@@ -67,22 +76,36 @@ async def poll_trade_signals(trader):
                 token_symbol = signal['token_symbol']
                 entry_mcap = signal['entry_mcap']
                 trigger_type = signal['trigger_type']
+                wallet_count = signal.get('wallet_count', 3)
 
-                print(f"\n📡 Yeni sinyal: {token_symbol} ({trigger_type}) | MCap: ${entry_mcap/1e3:.0f}K")
+                print(f"\n📡 Sinyal: {token_symbol} ({trigger_type}) | MCap: ${entry_mcap/1e3:.0f}K | Strateji: {strategy_name}")
 
-                # Kill switch kontrolü
+                # === VIRTUAL TRADING (her zaman aktif) ===
+                try:
+                    # Scenario 2 (Speed Demon) her zaman anında alır
+                    v_trader.buy_token(2, token_address, token_symbol, entry_mcap, wallet_count)
+
+                    # Scenario 1 (Confirmation Sniper) sadece approved sinyallerde alır
+                    if ACTIVE_STRATEGY == "confirmation_sniper":
+                        # Bu zaten approved sinyal — trade_result'tan 5dk verisini al
+                        trade_result = signal.get('trade_result') or {}
+                        change_5min = trade_result.get('change_5min_pct')
+                        v_trader.buy_token(1, token_address, token_symbol, entry_mcap,
+                                          wallet_count, change_5min_pct=change_5min)
+                except Exception as e:
+                    print(f"⚠️ Virtual trade hatası: {e}")
+
+                # === REAL TRADING ===
                 if not REAL_TRADING_ENABLED:
                     update_signal_status(signal_id, 'skipped', {"reason": "trading_disabled"})
-                    print(f"⏭️  Skip: Real trading kapalı")
                     skipped_count += 1
                     continue
 
                 # Processing olarak işaretle
                 update_signal_status(signal_id, 'processing')
 
-                # Buy işlemi
                 try:
-                    result = trader.buy_token(
+                    result = real_trader.buy_token(
                         token_address=token_address,
                         token_symbol=token_symbol,
                         entry_mcap=entry_mcap
@@ -95,6 +118,7 @@ async def poll_trade_signals(trader):
                             "token_amount": result.get('amount', 0),
                             "entry_price": result.get('entry_price', 0),
                             "fee_tier": result.get('fee_tier', 0),
+                            "strategy": strategy_name,
                             "timestamp": datetime.now(timezone.utc).isoformat()
                         }
                         update_signal_status(signal_id, 'executed', trade_result)
@@ -102,7 +126,7 @@ async def poll_trade_signals(trader):
                         print(f"✅ Trade executed: {token_symbol} | {result.get('eth_spent', 0):.4f} ETH")
                     else:
                         update_signal_status(signal_id, 'failed', {"reason": "buy_returned_none"})
-                        print(f"❌ Trade failed: {token_symbol} | buy_token returned None")
+                        print(f"❌ Trade failed: {token_symbol}")
 
                 except Exception as e:
                     update_signal_status(signal_id, 'failed', {"reason": str(e)})
@@ -115,70 +139,81 @@ async def poll_trade_signals(trader):
         await asyncio.sleep(SIGNAL_POLL_INTERVAL)
 
 
+async def virtual_tp_sl_monitor():
+    """Virtual trader pozisyonlarını periyodik olarak kontrol et (TP/SL)."""
+    print(f"📊 Virtual TP/SL monitor başladı (her {VIRTUAL_CHECK_INTERVAL}sn)...")
+
+    while True:
+        try:
+            v_trader = get_virtual_trader()
+            v_trader.check_tp_sl()
+        except Exception as e:
+            print(f"⚠️ Virtual TP/SL check hatası: {e}")
+
+        await asyncio.sleep(VIRTUAL_CHECK_INTERVAL)
+
+
 async def main():
-    """Ana fonksiyon — signal poller + position monitor paralel çalışır."""
+    """Ana fonksiyon — signal poller + virtual TP/SL + real position monitor paralel."""
+    strategy_config = get_active_strategy_config()
+
     print("\n" + "=" * 60)
-    print("🤖 TRADE BOT BAŞLATILIYOR")
+    print("🤖 TRADE BOT v2 BAŞLATILIYOR")
     print("=" * 60)
+    print(f"🎯 Aktif Strateji: {strategy_config['name']}")
     print(f"💎 Real Trading: {'AKTİF' if REAL_TRADING_ENABLED else 'KAPALI'}")
-    print(f"💰 Trade boyutu: {REAL_TRADE_SIZE_ETH} ETH")
-    print(f"📊 Max pozisyon: {MAX_OPEN_POSITIONS}")
-    print(f"💼 Max exposure: {MAX_TOTAL_EXPOSURE_ETH} ETH")
-    print(f"🛑 Günlük kayıp limiti: {MAX_DAILY_LOSS_ETH} ETH")
-    print(f"⏱️  Signal poll: her {SIGNAL_POLL_INTERVAL}sn")
-    print(f"⏱️  Position check: her {POSITION_CHECK_INTERVAL}sn")
-    print(f"⏰ Signal expiry: {SIGNAL_EXPIRY_SECONDS}sn")
+    print(f"💰 Trade boyutu: {strategy_config['trade_size_eth']} ETH")
+    print(f"📊 Max pozisyon: {strategy_config['max_positions']}")
+    print(f"💼 Max exposure: {strategy_config['max_exposure_eth']} ETH")
+    print(f"🛑 Günlük kayıp limiti: {strategy_config['max_daily_loss_eth']} ETH")
+    tp_str = ", ".join(f"{tp['multiplier']}x→%{tp['sell_pct']}" for tp in strategy_config['tp_levels'])
+    print(f"📈 TP seviyeleri: [{tp_str}]")
+    print(f"📉 SL: {strategy_config['sl_multiplier']}x | Zaman SL: {strategy_config.get('time_sl_minutes', 30)}dk")
+    if ACTIVE_STRATEGY == "confirmation_sniper":
+        print(f"⏱️  5dk MCap filtre: +{strategy_config['min_5min_change_pct']}%")
+        print(f"🕐 Aktif saatler: {strategy_config['active_hours'][0]}:00-{strategy_config['active_hours'][1]}:00 UTC+3")
     print(f"🗄️  Database: {'Bağlı' if DATABASE_URL else 'YOK'}")
     print("=" * 60 + "\n")
 
     # Database başlat
     if not is_db_available():
         print("❌ Database bağlantısı yok! Trade bot çalışamaz.")
-        print("DATABASE_URL environment variable'ı ayarlayın.")
         return
 
     init_db()
-    print("✅ Database tabloları hazır")
 
-    # Real Trader başlat
-    if not REAL_TRADING_ENABLED:
-        print("⚠️  Real trading KAPALI — sinyaller alınacak ama işlem yapılmayacak")
-        print("   Aktif etmek için: REAL_TRADING_ENABLED=true")
-
-    trader = None
+    # Real Trader (opsiyonel)
+    real_trader = None
     if REAL_TRADING_ENABLED:
         try:
             from scripts.real_trader import get_real_trader
-            trader = get_real_trader()
+            real_trader = get_real_trader()
             print(f"✅ Real trader hazır")
         except Exception as e:
             print(f"❌ Real trader başlatılamadı: {e}")
             send_error_alert(f"Trade bot: Real trader başlatılamadı: {e}")
             return
-    else:
-        # Trader None olsa bile signal poller çalışsın (skip modunda)
-        pass
 
     # Telegram bildirimi
-    trading_status = "AKTİF" if REAL_TRADING_ENABLED else "KAPALI (izleme modu)"
     send_status_update(
-        f"🤖 Trade Bot başlatıldı!\n"
-        f"• Real Trading: {trading_status}\n"
-        f"• Trade boyutu: {REAL_TRADE_SIZE_ETH} ETH\n"
-        f"• Max pozisyon: {MAX_OPEN_POSITIONS}\n"
-        f"• Signal poll: {SIGNAL_POLL_INTERVAL}sn\n"
-        f"• Signal expiry: {SIGNAL_EXPIRY_SECONDS//60}dk"
+        f"🤖 Trade Bot v2 başlatıldı!\n"
+        f"• Strateji: {strategy_config['name']}\n"
+        f"• Real Trading: {'AKTİF' if REAL_TRADING_ENABLED else 'KAPALI (paper trade)'}\n"
+        f"• Trade: {strategy_config['trade_size_eth']} ETH | Max: {strategy_config['max_positions']} poz\n"
+        f"• TP: {strategy_config['tp_levels'][0]['multiplier']}x/{strategy_config['tp_levels'][1]['multiplier']}x/{strategy_config['tp_levels'][2]['multiplier']}x | SL: {strategy_config['sl_multiplier']}x"
     )
 
-    # Async tasks paralel çalıştır
-    tasks = [poll_trade_signals(trader)]
+    # Async tasks
+    tasks = [
+        poll_trade_signals(real_trader),
+        virtual_tp_sl_monitor(),
+    ]
 
-    # Position monitor sadece trading aktifse
-    if REAL_TRADING_ENABLED and trader:
-        tasks.append(trader.monitor_positions())
-        print("📊 Pozisyon monitörü başlatıldı")
+    if REAL_TRADING_ENABLED and real_trader:
+        tasks.append(real_trader.monitor_positions())
+        print("📊 Real pozisyon monitörü başlatıldı")
 
-    print("🚀 Trade bot çalışıyor...\n")
+    print("🚀 Trade bot v2 çalışıyor...\n")
 
     try:
         await asyncio.gather(*tasks)

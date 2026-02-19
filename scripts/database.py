@@ -319,20 +319,34 @@ def save_real_portfolio_db(data: dict) -> bool:
 # =============================================================================
 
 def save_trade_signal(token_address: str, token_symbol: str, entry_mcap: int,
-                      trigger_type: str, wallet_count: int = 1) -> bool:
-    """Alert bot'tan gelen trade sinyalini DB'ye yaz."""
+                      trigger_type: str, wallet_count: int = 1, status: str = None) -> bool:
+    """Alert bot'tan gelen trade sinyalini DB'ye yaz.
+    status: None=otomatik (strateji bazlı), veya 'pending'/'pending_confirmation' manuel.
+    """
     conn = get_connection()
     if not conn:
         return False
 
+    # Status belirtilmemişse aktif stratejiye göre ata
+    if status is None:
+        try:
+            from config.settings import ACTIVE_STRATEGY
+            if ACTIVE_STRATEGY == "confirmation_sniper" and trigger_type == "scenario_1":
+                status = "pending_confirmation"  # 5dk MCap check bekleyecek
+            else:
+                status = "pending"  # Anında işleme alınacak
+        except Exception:
+            status = "pending"
+
     try:
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO trade_signals (token_address, token_symbol, entry_mcap, trigger_type, wallet_count)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (token_address.lower(), token_symbol, entry_mcap, trigger_type, wallet_count))
+            INSERT INTO trade_signals (token_address, token_symbol, entry_mcap, trigger_type, wallet_count, status)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (token_address.lower(), token_symbol, entry_mcap, trigger_type, wallet_count, status))
         cur.close()
-        print(f"📡 Trade signal yazıldı: {token_symbol} ({trigger_type})")
+        status_emoji = "🎯" if status == "pending_confirmation" else "📡"
+        print(f"{status_emoji} Trade signal yazıldı: {token_symbol} ({trigger_type}) → {status}")
         return True
     except Exception as e:
         print(f"⚠️ Trade signal yazma hatası: {e}")
@@ -402,24 +416,49 @@ def update_signal_status(signal_id: int, status: str, trade_result: dict = None)
 
 
 def expire_old_signals(max_age_seconds: int = 300) -> int:
-    """5dk'dan eski pending sinyalleri 'skipped' olarak işaretle."""
+    """5dk'dan eski pending sinyalleri 'skipped' olarak işaretle.
+    pending_confirmation sinyalleri 10dk'da expire olur (MCap check süresi).
+    """
     conn = get_connection()
     if not conn:
         return 0
 
     try:
         cur = conn.cursor()
+        # Normal pending sinyaller: 5dk
         cur.execute("""
             UPDATE trade_signals
             SET status = 'skipped', processed_at = NOW()
             WHERE status = 'pending'
               AND created_at <= NOW() - INTERVAL '%s seconds'
         """, (max_age_seconds,))
-        count = cur.rowcount
+        count1 = cur.rowcount
+
+        # Confirmation bekleyen sinyaller: 10dk (5dk check süresi + buffer)
+        cur.execute("""
+            UPDATE trade_signals
+            SET status = 'skipped', processed_at = NOW(),
+                trade_result = '{"reason": "mcap_confirmation_timeout"}'::jsonb
+            WHERE status = 'pending_confirmation'
+              AND created_at <= NOW() - INTERVAL '600 seconds'
+        """)
+        count2 = cur.rowcount
+
+        # Approved ama işlenmemiş sinyaller: 10dk
+        cur.execute("""
+            UPDATE trade_signals
+            SET status = 'skipped', processed_at = NOW(),
+                trade_result = '{"reason": "approved_but_not_executed"}'::jsonb
+            WHERE status = 'approved'
+              AND created_at <= NOW() - INTERVAL '600 seconds'
+        """)
+        count3 = cur.rowcount
+
         cur.close()
-        if count > 0:
-            print(f"⏰ {count} eski sinyal skipped yapıldı")
-        return count
+        total = count1 + count2 + count3
+        if total > 0:
+            print(f"⏰ {total} eski sinyal skipped ({count1} pending, {count2} confirmation, {count3} approved)")
+        return total
     except Exception as e:
         print(f"⚠️ Signal expire hatası: {e}")
         return 0
@@ -823,6 +862,115 @@ def get_wallet_participation_from_snapshots() -> list:
     except Exception as e:
         print(f"⚠️ Snapshot wallet participation okuma hatası: {e}")
         return []
+
+
+def get_signal_by_token_recent(token_address: str, max_age_seconds: int = 600) -> dict:
+    """Token adresi ile son 10dk içindeki pending/pending_confirmation sinyali bul."""
+    conn = get_connection()
+    if not conn:
+        return None
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, token_address, token_symbol, entry_mcap, trigger_type, wallet_count, status, created_at
+            FROM trade_signals
+            WHERE token_address = %s
+              AND status IN ('pending', 'pending_confirmation')
+              AND created_at > NOW() - INTERVAL '%s seconds'
+            ORDER BY created_at DESC
+            LIMIT 1
+        """, (token_address.lower(), max_age_seconds))
+        row = cur.fetchone()
+        cur.close()
+        if row:
+            return {
+                "id": row[0], "token_address": row[1], "token_symbol": row[2],
+                "entry_mcap": row[3], "trigger_type": row[4], "wallet_count": row[5],
+                "status": row[6], "created_at": row[7].isoformat() if row[7] else None
+            }
+        return None
+    except Exception as e:
+        print(f"⚠️ Signal by token okuma hatası: {e}")
+        return None
+
+
+def approve_signal(signal_id: int, approval_data: dict = None) -> bool:
+    """Pending_confirmation sinyalini 'approved' yap (5dk MCap check geçtikten sonra)."""
+    conn = get_connection()
+    if not conn:
+        return False
+    try:
+        cur = conn.cursor()
+        if approval_data:
+            cur.execute("""
+                UPDATE trade_signals
+                SET status = 'approved', trade_result = %s
+                WHERE id = %s AND status = 'pending_confirmation'
+            """, (Json(approval_data), signal_id))
+        else:
+            cur.execute("""
+                UPDATE trade_signals
+                SET status = 'approved'
+                WHERE id = %s AND status = 'pending_confirmation'
+            """, (signal_id,))
+        updated = cur.rowcount
+        cur.close()
+        if updated > 0:
+            print(f"✅ Signal #{signal_id} approved (5dk MCap check geçti)")
+        return updated > 0
+    except Exception as e:
+        print(f"⚠️ Signal approve hatası: {e}")
+        return False
+
+
+def get_approved_signals(max_age_seconds: int = 600) -> list:
+    """Approved durumundaki sinyalleri al (Confirmation Sniper için)."""
+    conn = get_connection()
+    if not conn:
+        return []
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, token_address, token_symbol, entry_mcap, trigger_type, wallet_count, created_at
+            FROM trade_signals
+            WHERE status = 'approved'
+              AND created_at > NOW() - INTERVAL '%s seconds'
+            ORDER BY created_at ASC
+        """, (max_age_seconds,))
+        rows = cur.fetchall()
+        cur.close()
+        return [{
+            "id": r[0], "token_address": r[1], "token_symbol": r[2],
+            "entry_mcap": r[3], "trigger_type": r[4], "wallet_count": r[5],
+            "created_at": r[6].isoformat() if r[6] else None
+        } for r in rows]
+    except Exception as e:
+        print(f"⚠️ Approved signals okuma hatası: {e}")
+        return []
+
+
+def expire_old_confirmation_signals(max_age_seconds: int = 600) -> int:
+    """10dk'dan eski pending_confirmation sinyalleri 'skipped' yap (MCap check geçemedi)."""
+    conn = get_connection()
+    if not conn:
+        return 0
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE trade_signals
+            SET status = 'skipped', processed_at = NOW(),
+                trade_result = '{"reason": "mcap_confirmation_timeout"}'::jsonb
+            WHERE status = 'pending_confirmation'
+              AND created_at <= NOW() - INTERVAL '%s seconds'
+        """, (max_age_seconds,))
+        count = cur.rowcount
+        cur.close()
+        if count > 0:
+            print(f"⏰ {count} onay bekleyen sinyal timeout (5dk check geçemedi)")
+        return count
+    except Exception as e:
+        print(f"⚠️ Confirmation expire hatası: {e}")
+        return 0
 
 
 def cleanup_old_wallet_activity(days: int = 30) -> int:
