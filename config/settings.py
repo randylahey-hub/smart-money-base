@@ -22,6 +22,12 @@ ALCHEMY_API_KEY = ALCHEMY_API_KEYS[0]  # Aktif key (runtime'da değişebilir)
 BASE_RPC_HTTP = f"https://base-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
 BASE_RPC_WSS = f"wss://base-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
 
+# Public Base RPC'ler (Alchemy tükenince son çare fallback)
+PUBLIC_BASE_RPCS = [
+    "https://mainnet.base.org",    # Official Coinbase
+    "https://base.llamarpc.com",   # LlamaRPC
+]
+
 # =============================================================================
 # ALERT AYARLARI
 # =============================================================================

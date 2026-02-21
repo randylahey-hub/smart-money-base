@@ -35,6 +35,7 @@ from config.settings import (
     BLACKOUT_HOURS,
     BLACKOUT_EXTRA_THRESHOLD,
     ALCHEMY_API_KEYS,
+    PUBLIC_BASE_RPCS,
 )
 from scripts.telegram_alert import (
     send_smart_money_alert,
@@ -125,14 +126,21 @@ class SmartMoneyMonitor:
     def _rotate_rpc_key(self):
         """
         Alchemy API key'i bir sonrakine çevir.
+        Tüm Alchemy key'leri bitince public Base RPC'lere fallback yapar.
         Kredi tükenme, rate limit veya bağlantı hatası durumunda çağrılır.
         """
-        if len(ALCHEMY_API_KEYS) <= 1:
-            print("❌ Yedek Alchemy key yok! Tek key ile devam ediliyor.")
-            return False
-
         old_index = self._api_key_index
-        self._api_key_index = (self._api_key_index + 1) % len(ALCHEMY_API_KEYS)
+        next_index = (self._api_key_index + 1) % len(ALCHEMY_API_KEYS)
+
+        # Tüm Alchemy key'leri denendiyse public RPC'lere geç
+        if next_index == 0 and old_index != 0:
+            return self._try_public_rpcs()
+
+        if len(ALCHEMY_API_KEYS) <= 1 and old_index == 0:
+            # Tek key var, public RPC'yi dene
+            return self._try_public_rpcs()
+
+        self._api_key_index = next_index
         new_key = ALCHEMY_API_KEYS[self._api_key_index]
         new_rpc = f"https://base-mainnet.g.alchemy.com/v2/{new_key}"
 
@@ -155,10 +163,36 @@ class SmartMoneyMonitor:
             return True
         else:
             print(f"❌ Key #{self._api_key_index + 1} de bağlanamadı!")
-            # Tüm key'leri dene
+            # Sonraki key'i dene
             if self._api_key_index != old_index:
                 return self._rotate_rpc_key()
+            # Hiçbir Alchemy key çalışmıyor → public RPC
+            return self._try_public_rpcs()
+
+    def _try_public_rpcs(self) -> bool:
+        """Tüm Alchemy key'leri bitince ücretsiz public Base RPC'leri dene."""
+        if not PUBLIC_BASE_RPCS:
+            print("❌ Public RPC listesi boş! Bot durdu.")
             return False
+
+        for i, rpc_url in enumerate(PUBLIC_BASE_RPCS):
+            print(f"🌐 Public RPC deneniyor ({i+1}/{len(PUBLIC_BASE_RPCS)}): {rpc_url}")
+            self.w3 = Web3(Web3.HTTPProvider(rpc_url))
+            if self.w3.is_connected():
+                self._consecutive_rpc_errors = 0
+                print(f"✅ Public RPC bağlandı: {rpc_url}")
+                try:
+                    send_status_update(
+                        f"⚠️ Alchemy key'leri tükendi!\n"
+                        f"🌐 Public RPC'ye geçildi: {rpc_url}\n"
+                        f"⚡ Performans düşük olabilir — lütfen yeni Alchemy key ekle!"
+                    )
+                except Exception:
+                    pass
+                return True
+
+        print("❌ Hiçbir RPC bağlanamadı! Bot durdu.")
+        return False
 
     def _run_watchdog(self, block_count: int, transfer_count: int):
         """
