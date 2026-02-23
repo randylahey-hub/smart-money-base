@@ -43,11 +43,19 @@ from scripts.telegram_alert import (
     send_error_alert,
     get_token_info_dexscreener
 )
-from scripts.early_detector import (
-    process_alert_for_early_detection,
-    get_smartest_wallet_addresses,
-    is_smartest_wallet
-)
+from scripts.database import load_smartest_wallets_db as _load_smartest_db
+
+def _is_smartest_wallet(address: str) -> bool:
+    """Smartest wallets DB'sinde kontrol et (early_detector yerine)."""
+    try:
+        data = _load_smartest_db()
+        if not data:
+            return False
+        wallets = data.get("wallets", [])
+        addr_lower = address.lower()
+        return any(w.lower() == addr_lower for w in wallets)
+    except Exception:
+        return False
 from scripts.virtual_trader import get_trader
 from scripts.daily_report import check_and_send_if_time
 from scripts.tx_classifier import classify_transaction
@@ -541,7 +549,7 @@ class SmartMoneyMonitor:
 
             # === TRADE SIGNAL - Senaryo 2 (Smartest Wallet) ===
             try:
-                if is_smartest_wallet(to_address) and not is_duplicate_signal(token_address):
+                if _is_smartest_wallet(to_address) and not is_duplicate_signal(token_address):
                     save_trade_signal(token_address, token_symbol, current_mcap, "scenario_2", 1)
             except Exception as e:
                 print(f"⚠️ Trade signal S2 hatası: {e}")
@@ -667,17 +675,6 @@ class SmartMoneyMonitor:
                     )
                 except Exception as e:
                     print(f"⚠️ Early detection v2 hatası: {e}")
-                    # Fallback: eski sistemi dene
-                    try:
-                        process_alert_for_early_detection(
-                            token_address=token_address,
-                            token_symbol=token_info.get('symbol', 'UNKNOWN'),
-                            smart_money_purchases=wallet_purchases,
-                            smart_money_wallets=self.wallets_set,
-                            current_block=self.w3.eth.block_number
-                        )
-                    except Exception as e2:
-                        print(f"⚠️ Early detection fallback hatası: {e2}")
 
                 # === VIRTUAL TRADING - Senaryo 1 (Devre dışı) ===
                 # try:
