@@ -16,7 +16,7 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "-5200749160")
 # =============================================================================
 # Birden fazla key: biri tükenince diğerine geçer
 # Pipe (|) separator — Koyeb CLI virgülü env separator olarak kullanıyor
-_ALCHEMY_KEYS_STR = os.getenv("ALCHEMY_API_KEYS", os.getenv("ALCHEMY_API_KEY", "v2VIrBNyeXX-pl3yOlVSc|Lwf_pyOddPDM4qQPcvZr2"))
+_ALCHEMY_KEYS_STR = os.getenv("ALCHEMY_API_KEYS", os.getenv("ALCHEMY_API_KEY", "-phYImT1kdr89FNdvUs2Q|v2VIrBNyeXX-pl3yOlVSc|Lwf_pyOddPDM4qQPcvZr2"))
 ALCHEMY_API_KEYS = [k.strip() for k in _ALCHEMY_KEYS_STR.split("|") if k.strip()]
 ALCHEMY_API_KEY = ALCHEMY_API_KEYS[0]  # Aktif key (runtime'da değişebilir)
 BASE_RPC_HTTP = f"https://base-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"

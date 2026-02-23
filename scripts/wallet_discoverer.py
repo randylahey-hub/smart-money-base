@@ -15,21 +15,14 @@ from collections import defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config.settings import BASE_RPC_HTTP
+from config.settings import BASE_RPC_HTTP, ALCHEMY_API_KEYS
 from web3 import Web3
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 UTC_PLUS_3 = timezone(timedelta(hours=3))
 
-# Basescan API
-BASESCAN_API = "https://api.etherscan.io/v2/api"
-BASE_CHAIN_ID = "8453"
-ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY", "6TE7PX7TDS777Z3T7NQCZVUK4KBK9HHDJQ")
-
-# Rate limit
-BASESCAN_DELAY = 0.25  # 250ms = ~4 req/sec
-RATE_LIMIT_WAIT = 30
-MAX_RETRIES = 3
+# Alchemy API
+ALCHEMY_URL = f"https://base-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEYS[0]}"
 
 # Filtreler
 MIN_BUY_VALUE_USD = 50       # Min $50 alım
@@ -63,99 +56,111 @@ w3 = Web3(Web3.HTTPProvider(BASE_RPC_HTTP))
 
 
 # =============================================================================
-# BASESCAN API FONKSİYONLARI
+# ALCHEMY API FONKSİYONLARI
 # =============================================================================
 
-def _fetch_with_retry(params: dict) -> dict:
-    """Basescan API çağrısı - retry ile."""
-    for attempt in range(1, MAX_RETRIES + 1):
-        try:
-            resp = requests.get(BASESCAN_API, params=params, timeout=30)
-            data = resp.json()
+def _alchemy_call(method: str, params: list) -> dict:
+    """Alchemy JSON-RPC çağrısı."""
+    resp = requests.post(
+        ALCHEMY_URL,
+        json={"jsonrpc": "2.0", "id": 1, "method": method, "params": params},
+        timeout=30,
+    )
+    return resp.json()
 
-            message = data.get("message", "")
-            if "rate limit" in message.lower() or message == "NOTOK":
-                print(f"⏳ Rate limit, {RATE_LIMIT_WAIT}s bekleniyor... (deneme {attempt})")
-                time.sleep(RATE_LIMIT_WAIT)
-                continue
 
-            return data
-        except Exception as e:
-            print(f"⚠️ Basescan API hatası (deneme {attempt}): {e}")
-            time.sleep(5)
+def _get_asset_transfers(params: dict) -> list:
+    """
+    alchemy_getAssetTransfers ile sayfalama yaparak tüm transferleri çek.
+    """
+    all_transfers = []
+    page_key = None
 
-    return {"result": [], "message": "Max retries exceeded"}
+    while True:
+        if page_key:
+            params["pageKey"] = page_key
+
+        result = _alchemy_call("alchemy_getAssetTransfers", [params])
+
+        if "error" in result:
+            print(f"    ⚠️ alchemy_getAssetTransfers hatası: {result['error']}")
+            break
+
+        data = result.get("result", {})
+        transfers = data.get("transfers", [])
+        all_transfers.extend(transfers)
+
+        page_key = data.get("pageKey")
+        if not page_key or not transfers:
+            break
+
+        time.sleep(0.1)
+
+    return all_transfers
 
 
 def find_first_buyers(token_address: str, max_buyers: int = MAX_FIRST_BUYERS) -> list:
     """
-    Bir tokenın ilk alıcılarını bul (Basescan token transfer geçmişi).
+    Bir tokenın ilk alıcılarını bul (Alchemy ERC-20 transfer geçmişi).
 
     Returns: [{"wallet", "block", "tx_hash", "value", "timestamp"}, ...]
     """
     params = {
-        'chainid': BASE_CHAIN_ID,
-        'module': 'account',
-        'action': 'tokentx',
-        'contractaddress': token_address,
-        'startblock': 0,
-        'endblock': 99999999,
-        'sort': 'asc',
-        'page': 1,
-        'offset': 100,  # İlk 100 transfer
-        'apikey': ETHERSCAN_API_KEY,
+        "contractAddresses": [Web3.to_checksum_address(token_address)],
+        "category": ["erc20"],
+        "order": "asc",
+        "maxCount": hex(max_buyers * 2),  # İlk alıcıları bulmak için biraz fazla çek
+        "withMetadata": True,
+        "excludeZeroValue": True,
     }
 
-    data = _fetch_with_retry(params)
-    transfers = data.get("result", [])
+    transfers = _get_asset_transfers(params)
 
-    if not isinstance(transfers, list):
+    if not transfers:
         print(f"⚠️ Token transfer verisi alınamadı: {token_address[:10]}...")
         return []
 
-    # İlk alıcıları filtrele (tekrarsız, sadece alım yönü)
+    # İlk alıcıları filtrele
     seen_wallets = set()
     first_buyers = []
 
-    # Null/zero address = mint, bundan gelen transferler = gerçek alım
-    ZERO_ADDRESSES = {"0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000001"}
-
     for tx in transfers:
-        to_addr = tx.get("to", "").lower()
-        from_addr = tx.get("from", "").lower()
+        to_addr = (tx.get("to") or "").lower()
+        from_addr = (tx.get("from") or "").lower()
 
-        # Zaten gördük
-        if to_addr in seen_wallets:
+        if not to_addr or to_addr in seen_wallets:
             continue
-
-        # Kendinden kendine transfer atla
         if to_addr == from_addr:
             continue
 
-        # Mint'ten gelen veya DEX router'dan gelen transferler = gerçek alım
-        # (Her transfer ilk alım olabilir)
         seen_wallets.add(to_addr)
 
-        # Değer hesapla (token miktarı)
-        try:
-            decimals = int(tx.get("tokenDecimal", 18))
-            value = int(tx.get("value", 0)) / (10 ** decimals)
-        except (ValueError, ZeroDivisionError):
-            value = 0
+        # Block numarası
+        block_num = int(tx.get("blockNum", "0x0"), 16)
+
+        # Timestamp
+        ts = 0
+        meta = tx.get("metadata") or {}
+        block_ts = meta.get("blockTimestamp", "")
+        if block_ts:
+            try:
+                dt = datetime.fromisoformat(block_ts.replace("Z", "+00:00"))
+                ts = int(dt.timestamp())
+            except Exception:
+                pass
 
         first_buyers.append({
             "wallet": to_addr,
-            "block": int(tx.get("blockNumber", 0)),
+            "block": block_num,
             "tx_hash": tx.get("hash", ""),
-            "value": value,
-            "timestamp": int(tx.get("timeStamp", 0)),
+            "value": float(tx.get("value") or 0),
+            "timestamp": ts,
             "from": from_addr,
         })
 
         if len(first_buyers) >= max_buyers:
             break
 
-    time.sleep(BASESCAN_DELAY)
     return first_buyers
 
 
@@ -171,68 +176,80 @@ def is_eoa(address: str) -> bool:
 def get_account_age_days(address: str) -> int:
     """Hesabın ilk işlem tarihinden bugüne kaç gün geçtiğini bul."""
     params = {
-        'chainid': BASE_CHAIN_ID,
-        'module': 'account',
-        'action': 'txlist',
-        'address': address,
-        'startblock': 0,
-        'endblock': 99999999,
-        'sort': 'asc',
-        'page': 1,
-        'offset': 1,  # Sadece ilk tx
-        'apikey': ETHERSCAN_API_KEY,
+        "fromAddress": Web3.to_checksum_address(address),
+        "category": ["external", "erc20"],
+        "order": "asc",
+        "maxCount": "0x1",
+        "withMetadata": True,
+        "excludeZeroValue": False,
     }
 
-    data = _fetch_with_retry(params)
-    txs = data.get("result", [])
-    time.sleep(BASESCAN_DELAY)
+    transfers = _get_asset_transfers(params)
 
-    if not isinstance(txs, list) or not txs:
+    if not transfers:
+        # Hiç giden TX yoksa, gelen TX'e bak (yeni hesap olabilir)
+        params2 = {
+            "toAddress": Web3.to_checksum_address(address),
+            "category": ["external", "erc20"],
+            "order": "asc",
+            "maxCount": "0x1",
+            "withMetadata": True,
+            "excludeZeroValue": False,
+        }
+        transfers = _get_asset_transfers(params2)
+
+    if not transfers:
         return 0
 
     try:
-        first_ts = int(txs[0].get("timeStamp", 0))
-        first_date = datetime.fromtimestamp(first_ts, tz=timezone.utc)
-        age = (datetime.now(timezone.utc) - first_date).days
-        return age
+        meta = transfers[0].get("metadata") or {}
+        block_ts = meta.get("blockTimestamp", "")
+        if not block_ts:
+            return 0
+        dt = datetime.fromisoformat(block_ts.replace("Z", "+00:00"))
+        age = (datetime.now(timezone.utc) - dt).days
+        return max(0, age)
     except Exception:
         return 0
 
 
 def count_recent_tokens(address: str, hours: int = 1) -> int:
     """Son N saat içinde kaç farklı token alımı yapılmış (bot tespiti)."""
-    now_ts = int(datetime.now(timezone.utc).timestamp())
-    cutoff_ts = now_ts - (hours * 3600)
-
     params = {
-        'chainid': BASE_CHAIN_ID,
-        'module': 'account',
-        'action': 'tokentx',
-        'address': address,
-        'startblock': 0,
-        'endblock': 99999999,
-        'sort': 'desc',
-        'page': 1,
-        'offset': 50,
-        'apikey': ETHERSCAN_API_KEY,
+        "toAddress": Web3.to_checksum_address(address),
+        "category": ["erc20"],
+        "order": "desc",
+        "maxCount": "0x32",  # 50
+        "withMetadata": True,
+        "excludeZeroValue": True,
     }
 
-    data = _fetch_with_retry(params)
-    txs = data.get("result", [])
-    time.sleep(BASESCAN_DELAY)
+    transfers = _get_asset_transfers(params)
 
-    if not isinstance(txs, list):
+    if not transfers:
         return 0
 
+    cutoff_dt = datetime.now(timezone.utc) - timedelta(hours=hours)
     recent_tokens = set()
-    for tx in txs:
-        ts = int(tx.get("timeStamp", 0))
-        if ts >= cutoff_ts:
-            contract = tx.get("contractAddress", "").lower()
-            if contract:
-                recent_tokens.add(contract)
-        else:
-            break
+
+    for tx in transfers:
+        meta = tx.get("metadata") or {}
+        block_ts = meta.get("blockTimestamp", "")
+        if not block_ts:
+            continue
+        try:
+            dt = datetime.fromisoformat(block_ts.replace("Z", "+00:00"))
+            if dt >= cutoff_dt:
+                # rawContract.address veya asset bilgisi
+                raw = tx.get("rawContract") or {}
+                contract = (raw.get("address") or "").lower()
+                if contract:
+                    recent_tokens.add(contract)
+            else:
+                # Azalan sırayla geldiği için eski TX'e ulaştık
+                break
+        except Exception:
+            continue
 
     return len(recent_tokens)
 
@@ -240,29 +257,36 @@ def count_recent_tokens(address: str, hours: int = 1) -> int:
 def count_daily_transactions(address: str) -> int:
     """Son 24 saatteki toplam işlem sayısını kontrol et."""
     params = {
-        'chainid': BASE_CHAIN_ID,
-        'module': 'account',
-        'action': 'txlist',
-        'address': address,
-        'startblock': 0,
-        'endblock': 99999999,
-        'sort': 'desc',
-        'page': 1,
-        'offset': 200,
-        'apikey': ETHERSCAN_API_KEY,
+        "fromAddress": Web3.to_checksum_address(address),
+        "category": ["external", "erc20"],
+        "order": "desc",
+        "maxCount": "0xc8",  # 200
+        "withMetadata": True,
+        "excludeZeroValue": False,
     }
 
-    data = _fetch_with_retry(params)
-    txs = data.get("result", [])
-    time.sleep(BASESCAN_DELAY)
+    transfers = _get_asset_transfers(params)
 
-    if not isinstance(txs, list):
+    if not transfers:
         return 0
 
-    now_ts = int(datetime.now(timezone.utc).timestamp())
-    cutoff_ts = now_ts - (24 * 3600)
+    cutoff_dt = datetime.now(timezone.utc) - timedelta(hours=24)
+    count = 0
 
-    count = sum(1 for tx in txs if int(tx.get("timeStamp", 0)) >= cutoff_ts)
+    for tx in transfers:
+        meta = tx.get("metadata") or {}
+        block_ts = meta.get("blockTimestamp", "")
+        if not block_ts:
+            continue
+        try:
+            dt = datetime.fromisoformat(block_ts.replace("Z", "+00:00"))
+            if dt >= cutoff_dt:
+                count += 1
+            else:
+                break
+        except Exception:
+            continue
+
     return count
 
 
@@ -390,9 +414,7 @@ def discover_new_wallets(contracts_check_tokens: list = None) -> dict:
             if wallet in {c["address"] for c in all_candidates}:
                 continue
 
-            # Organik mi? (ETH fiyatı yaklaşık, token değeri bilinmiyor ama min $50 filtreyi
-            # Basescan'den gelen value ile tahmin ediyoruz)
-            # DexScreener'dan token fiyatı gerekli — basitleştirilmiş kontrol
+            # Organik mi?
             check = is_organic_buyer(wallet)
 
             if check["organic"]:
