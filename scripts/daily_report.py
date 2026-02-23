@@ -86,6 +86,73 @@ def _get_wallet_changes() -> str:
     return "\n".join(lines) if lines else ""
 
 
+def _get_virtual_trading_summary() -> str:
+    """
+    Paper trading (virtual trader) günlük özetini Telegram formatında döndür.
+    S1=Confirmation Sniper, S2=Speed Demon performanslarını gösterir.
+    """
+    try:
+        from scripts.virtual_trader import get_trader
+        trader = get_trader()
+        s = trader.get_daily_summary()
+
+        s1 = s["scenario1"]
+        s2 = s["scenario2"]
+        total = s["total"]
+
+        def pnl_str(eth_val: float) -> str:
+            sign = "+" if eth_val >= 0 else ""
+            return f"{sign}{eth_val:.4f} ETH"
+
+        def pct_str(initial: float, current: float) -> str:
+            if initial <= 0:
+                return ""
+            pct = (current - initial) / initial * 100
+            sign = "+" if pct >= 0 else ""
+            return f"{sign}{pct:.1f}%"
+
+        lines = [
+            "🤖 <b>Paper Trading Durumu</b>",
+        ]
+
+        # S1 — Confirmation Sniper
+        s1_trades = s1["wins"] + s1["losses"]
+        s1_pnl = pnl_str(s1["total_pnl"])
+        s1_pct = pct_str(s1["initial"], s1["current"])
+        if s1_trades == 0:
+            lines.append(f"  📌 S1 Sniper: Henüz trade yok ({s1_pct or 'pasif'})")
+        else:
+            lines.append(
+                f"  📌 S1 Sniper: {s1['wins']}W/{s1['losses']}L "
+                f"({s1['win_rate']:.0f}%) | {s1_pnl} ({s1_pct}) "
+                f"| {s1['open_positions']} açık"
+            )
+
+        # S2 — Speed Demon
+        s2_trades = s2["wins"] + s2["losses"]
+        s2_pnl = pnl_str(s2["total_pnl"])
+        s2_pct = pct_str(s2["initial"], s2["current"])
+        if s2_trades == 0:
+            lines.append(f"  ⚡ S2 Demon: Henüz trade yok")
+        else:
+            lines.append(
+                f"  ⚡ S2 Demon: {s2['wins']}W/{s2['losses']}L "
+                f"({s2['win_rate']:.0f}%) | {s2_pnl} ({s2_pct}) "
+                f"| {s2['open_positions']} açık"
+            )
+
+        # Toplam net
+        net_pnl = pnl_str(total["total_pnl"])
+        net_pct = pct_str(total["initial"], total["current"])
+        lines.append(f"  💼 Toplam: {net_pnl} ({net_pct})")
+
+        return "\n".join(lines)
+
+    except Exception as e:
+        print(f"⚠️ Virtual trading özeti hatası: {e}")
+        return ""
+
+
 def _get_yesterday_alerts() -> list:
     """
     Dünün alertlerini DB'den çek (UTC+3 00:00 - 23:59).
@@ -296,6 +363,12 @@ def generate_daily_report() -> str:
     if wallet_summary:
         lines.append("")
         lines.append(wallet_summary)
+
+    # Paper trading özeti
+    virtual_summary = _get_virtual_trading_summary()
+    if virtual_summary:
+        lines.append("")
+        lines.append(virtual_summary)
 
     return "\n".join(lines)
 

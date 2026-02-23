@@ -145,6 +145,16 @@ def run_daily_evaluation() -> dict:
             "warned": evaluation.get("flagged_warn", 0),
         }
 
+        # Günlük wallet keşfi (contracts_check + short_list kaynak dosyalarından)
+        print("\n🔍 Günlük cüzdan keşfi başlıyor...")
+        from scripts.wallet_discoverer import discover_new_wallets
+        discovery = discover_new_wallets()  # Kendi data/ dosyalarını okur
+        results["wallet_discovery"] = {
+            "discovered": discovery.get("discovered", 0),
+            "added": discovery.get("added", 0),
+            "rejected": discovery.get("rejected", 0),
+        }
+
     except Exception as e:
         print(f"❌ Günlük değerlendirme hatası: {e}")
         results["error"] = str(e)
