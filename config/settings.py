@@ -224,7 +224,7 @@ DEMON_CONFIG = {
     "min_5min_change_pct": None,     # Filtresiz — anında gir
     "min_mcap": 30000,               # Min MCap $30K
     "max_mcap": 200000,              # Max MCap $200K (daha düşük = daha yüksek çarpan)
-    "min_wallet_count": 3,           # Min cüzdan sayısı
+    "min_wallet_count": 4,           # Min cüzdan sayısı (3→4: kalite filtresi)
     "active_hours": None,            # Saat filtresi yok (blackout hours hariç)
     # TP/SL
     "tp_levels": [
@@ -232,7 +232,7 @@ DEMON_CONFIG = {
         {"multiplier": 3.5, "sell_pct": 30},   # 3.5x → %30 sat
         {"multiplier": 6.0, "sell_pct": 40},   # 6.0x → %40 sat (moon bag)
     ],
-    "sl_multiplier": 0.55,           # -45% stop loss
+    "sl_multiplier": 0.65,           # -35% stop loss (0.55→0.65: kayıpları kıs)
     "time_sl_minutes": 60,           # 60dk TP1 yoksa çık
     "consecutive_sl_cooldown": 3,    # 3 ardışık SL → 1 saat soğukluk
 }
