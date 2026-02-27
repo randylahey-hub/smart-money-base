@@ -24,8 +24,11 @@ BASE_RPC_WSS = f"wss://base-mainnet.g.alchemy.com/v2/{ALCHEMY_API_KEY}"
 
 # Public Base RPC'ler (Alchemy tükenince son çare fallback)
 PUBLIC_BASE_RPCS = [
-    "https://mainnet.base.org",    # Official Coinbase
-    "https://base.llamarpc.com",   # LlamaRPC
+    "https://base-rpc.publicnode.com",  # PublicNode (en güvenilir)
+    "https://1rpc.io/base",             # 1RPC (privacy-focused)
+    "https://base.drpc.org",            # DRPC
+    "https://mainnet.base.org",         # Official Coinbase (bazen 503)
+    "https://base.llamarpc.com",        # LlamaRPC
 ]
 
 # =============================================================================

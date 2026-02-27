@@ -866,9 +866,9 @@ class SmartMoneyMonitor:
 
         except Exception as e:
             print(f"⚠️ Blok işleme hatası ({block_number}): {e}")
-            # 429/rate limit → re-raise so polling loop triggers key rotation
+            # HTTP hataları (429, 503, vb.) → re-raise so polling loop triggers key rotation
             err_lower = str(e).lower()
-            if "429" in err_lower or "too many" in err_lower or "rate limit" in err_lower:
+            if any(s in err_lower for s in ["429", "503", "502", "too many", "rate limit", "service unavailable"]):
                 raise
 
         return transfer_count
