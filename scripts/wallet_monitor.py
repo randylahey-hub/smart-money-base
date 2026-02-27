@@ -769,11 +769,15 @@ class SmartMoneyMonitor:
                 current_block = self.w3.eth.block_number
 
                 if current_block > last_block:
+                    blocks_behind = current_block - last_block
                     # Yeni blokları işle
                     for block_num in range(last_block + 1, current_block + 1):
                         transfers = await self._process_block(block_num)
                         transfer_count += transfers
                         block_count += 1
+                        # Catch-up sırasında API'yi boğmamak için throttle
+                        if blocks_behind > 10:
+                            await asyncio.sleep(0.05)
 
                     # Her 50 blokta bir durum yazdır + rutin görevler
                     if block_count % 50 == 0:
@@ -862,6 +866,10 @@ class SmartMoneyMonitor:
 
         except Exception as e:
             print(f"⚠️ Blok işleme hatası ({block_number}): {e}")
+            # 429/rate limit → re-raise so polling loop triggers key rotation
+            err_lower = str(e).lower()
+            if "429" in err_lower or "too many" in err_lower or "rate limit" in err_lower:
+                raise
 
         return transfer_count
 

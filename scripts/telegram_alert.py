@@ -6,11 +6,17 @@ Smart money cüzdanları aynı tokeni aldığında bildirim gönderir.
 import requests
 import sys
 import os
+import time
+import hashlib
 from datetime import datetime, timezone, timedelta
 
 # Config'i import et
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.settings import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+
+# === Alert dedup: Aynı hata/status mesajı 1 saat içinde tekrar gönderilmez ===
+_alert_sent_times: dict = {}  # {hash: timestamp}
+SYSTEM_ALERT_COOLDOWN = 3600  # 1 saat
 
 
 def send_telegram_message(message: str, parse_mode: str = "HTML") -> bool:
@@ -276,7 +282,13 @@ def send_smart_money_alert(
 def send_status_update(status: str) -> bool:
     """
     Durum güncellemesi gönderir.
+    Aynı mesaj 1 saat içinde tekrar gönderilmez (spam koruması).
     """
+    key = hashlib.md5(status[:80].encode()).hexdigest()[:10]
+    now = time.time()
+    if key in _alert_sent_times and now - _alert_sent_times[key] < SYSTEM_ALERT_COOLDOWN:
+        return True  # Suppress
+    _alert_sent_times[key] = now
     message = f"ℹ️ <b>Durum:</b> {status}"
     return send_telegram_message(message)
 
@@ -284,8 +296,18 @@ def send_status_update(status: str) -> bool:
 def send_error_alert(error: str) -> bool:
     """
     Hata bildirimi gönderir.
+    Aynı hata 1 saat içinde tekrar gönderilmez (spam koruması).
     """
-    message = f"⚠️ <b>Hata:</b>\n<code>{error}</code>"
+    key = hashlib.md5(error[:80].encode()).hexdigest()[:10]
+    now = time.time()
+    if key in _alert_sent_times and now - _alert_sent_times[key] < SYSTEM_ALERT_COOLDOWN:
+        return True  # Suppress
+    _alert_sent_times[key] = now
+    message = (
+        f"⚠️ <b>Hata:</b>\n<code>{error}</code>\n\n"
+        f'🔧 <a href="https://app.koyeb.com">Koyeb</a> · '
+        f'<a href="https://supabase.com/dashboard/project/gjkqudpjevjslwaivady">Supabase</a>'
+    )
     return send_telegram_message(message)
 
 
