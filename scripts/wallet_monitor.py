@@ -85,16 +85,20 @@ class SmartMoneyMonitor:
         # Son alert bilgileri: {token_address: {"time": timestamp, "mcap": mcap, "count": alert_count}}
         self.last_alerts = {}
 
-        # Web3 bağlantısı — multi-key failover
-        self._api_key_index = 0
+        # Web3 bağlantısı — günlük rotasyon + failover
+        self._current_day = datetime.now().day
+        self._api_key_index = self._current_day % len(ALCHEMY_API_KEYS)
         self._consecutive_rpc_errors = 0
-        self.w3 = Web3(Web3.HTTPProvider(BASE_RPC_HTTP))
+        daily_key = ALCHEMY_API_KEYS[self._api_key_index]
+        self.w3 = Web3(Web3.HTTPProvider(
+            f"https://base-mainnet.g.alchemy.com/v2/{daily_key}"
+        ))
         if self.w3.is_connected():
             print(f"✅ Base chain'e bağlandı (HTTP)")
             print(f"📦 Güncel blok: {self.w3.eth.block_number}")
-            print(f"🔑 Alchemy keys: {len(ALCHEMY_API_KEYS)} yedek hazır")
+            print(f"🔑 Bugünün key'i: #{self._api_key_index + 1} (gün {self._current_day}) | Toplam: {len(ALCHEMY_API_KEYS)} key")
         else:
-            print(f"⚠️ İlk key başarısız, failover deneniyor...")
+            print(f"⚠️ Günün key'i ({self._api_key_index + 1}) başarısız, failover deneniyor...")
             self._rotate_rpc_key()
 
     def _load_wallets(self, wallets_file: str) -> list:
@@ -130,6 +134,30 @@ class SmartMoneyMonitor:
         except Exception as e:
             print(f"❌ Cüzdan dosyası yüklenemedi: {e}")
             return []
+
+    def _rotate_to_daily_key(self):
+        """
+        Gece yarısı gün değişince o güne ait Alchemy key'e geç.
+        Bu key de çalışmıyorsa normal failover devreye girer.
+        """
+        new_day = datetime.now().day
+        new_index = new_day % len(ALCHEMY_API_KEYS)
+        self._current_day = new_day
+        self._api_key_index = new_index
+        new_key = ALCHEMY_API_KEYS[new_index]
+        self.w3 = Web3(Web3.HTTPProvider(
+            f"https://base-mainnet.g.alchemy.com/v2/{new_key}"
+        ))
+        if self.w3.is_connected():
+            print(f"🔑 Yeni gün ({new_day}) → key #{new_index + 1} aktif")
+            self._consecutive_rpc_errors = 0
+            try:
+                send_status_update(f"🔑 Günlük key rotasyonu: key #{new_index + 1} aktif (gün {new_day})")
+            except Exception:
+                pass
+        else:
+            print(f"⚠️ Günün key'i ({new_index + 1}) bağlanamadı, failover...")
+            self._rotate_rpc_key()
 
     def _rotate_rpc_key(self):
         """
@@ -691,7 +719,10 @@ class SmartMoneyMonitor:
                 # === TRADE SIGNAL - Senaryo 1 (Smart Money Alert) ===
                 try:
                     if not is_duplicate_signal(token_address):
-                        save_trade_signal(token_address, token_info.get('symbol', 'UNKNOWN'), current_mcap_val, "scenario_1", len(unique_wallets))
+                        signal_wallets = [p[0] for p in wallet_purchases]
+                        save_trade_signal(token_address, token_info.get('symbol', 'UNKNOWN'),
+                                          current_mcap_val, "scenario_1", len(unique_wallets),
+                                          is_bullish=is_bullish, wallets_involved=signal_wallets)
                 except Exception as e:
                     print(f"⚠️ Trade signal S1 hatası: {e}")
 
@@ -804,6 +835,10 @@ class SmartMoneyMonitor:
                     # === WATCHDOG: Her 500 blokta (~16dk) sistem sağlığı kontrolü ===
                     if block_count % 500 == 0 and block_count > 0:
                         self._run_watchdog(block_count, transfer_count)
+
+                    # === GÜNLÜK KEY ROTASYONU: Gece yarısı gün değişince ===
+                    if datetime.now().day != self._current_day:
+                        self._rotate_to_daily_key()
 
                     # === SAĞLIK RAPORU: Her 7200 blokta (~4.8 saat → günde ~5 kez) ===
                     if block_count % 7200 == 0 and block_count > 0:

@@ -238,6 +238,9 @@ DEMON_CONFIG = {
     "sl_multiplier": 0.65,           # -35% stop loss (0.55→0.65: kayıpları kıs)
     "time_sl_minutes": 60,           # 60dk TP1 yoksa çık
     "consecutive_sl_cooldown": 3,    # 3 ardışık SL → 1 saat soğukluk
+    # Strateji filtreleri (Smartest Wallet + Bullish Alert)
+    "only_bullish_alerts": True,     # Sadece bullish alert'te trade aç (30dk içinde 2+ alert)
+    "only_smartest_wallets": True,   # Sadece smartest wallet tetiklediğinde trade aç
 }
 
 def get_active_strategy_config() -> dict:

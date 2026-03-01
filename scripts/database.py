@@ -83,9 +83,17 @@ def init_db():
                 status VARCHAR(20) DEFAULT 'pending',
                 created_at TIMESTAMP DEFAULT NOW(),
                 processed_at TIMESTAMP,
-                trade_result JSONB
+                trade_result JSONB,
+                is_bullish BOOLEAN DEFAULT FALSE,
+                wallets_involved JSONB
             )
         """)
+        # Mevcut tabloya yeni sütunlar ekle (migration)
+        for col, dtype in [("is_bullish", "BOOLEAN DEFAULT FALSE"), ("wallets_involved", "JSONB")]:
+            try:
+                cur.execute(f"ALTER TABLE trade_signals ADD COLUMN IF NOT EXISTS {col} {dtype}")
+            except Exception:
+                pass
 
         # wallet_activity — her cüzdan alımını takip (seçicilik skoru için)
         cur.execute("""
@@ -319,7 +327,8 @@ def save_real_portfolio_db(data: dict) -> bool:
 # =============================================================================
 
 def save_trade_signal(token_address: str, token_symbol: str, entry_mcap: int,
-                      trigger_type: str, wallet_count: int = 1, status: str = None) -> bool:
+                      trigger_type: str, wallet_count: int = 1, status: str = None,
+                      is_bullish: bool = False, wallets_involved: list = None) -> bool:
     """Alert bot'tan gelen trade sinyalini DB'ye yaz.
     status: None=otomatik (strateji bazlı), veya 'pending'/'pending_confirmation' manuel.
     """
@@ -339,11 +348,13 @@ def save_trade_signal(token_address: str, token_symbol: str, entry_mcap: int,
             status = "pending"
 
     try:
+        import psycopg2.extras
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO trade_signals (token_address, token_symbol, entry_mcap, trigger_type, wallet_count, status)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (token_address.lower(), token_symbol, entry_mcap, trigger_type, wallet_count, status))
+            INSERT INTO trade_signals (token_address, token_symbol, entry_mcap, trigger_type, wallet_count, status, is_bullish, wallets_involved)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (token_address.lower(), token_symbol, entry_mcap, trigger_type, wallet_count, status,
+              is_bullish, psycopg2.extras.Json(wallets_involved) if wallets_involved else None))
         cur.close()
         status_emoji = "🎯" if status == "pending_confirmation" else "📡"
         print(f"{status_emoji} Trade signal yazıldı: {token_symbol} ({trigger_type}) → {status}")

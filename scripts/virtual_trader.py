@@ -14,7 +14,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.telegram_alert import get_token_info_dexscreener
-from scripts.database import load_portfolio_db, save_portfolio_db, is_db_available
+from scripts.database import load_portfolio_db, save_portfolio_db, is_db_available, load_smartest_wallets_db
 from config.settings import SNIPER_CONFIG, DEMON_CONFIG
 
 # Data dosya yolu
@@ -150,7 +150,8 @@ class VirtualTrader:
         return self.portfolio.get(key, {})
 
     def _check_entry_conditions(self, scenario_num: int, entry_mcap: float,
-                                 wallet_count: int = 3, change_5min_pct: float = None) -> tuple:
+                                 wallet_count: int = 3, change_5min_pct: float = None,
+                                 is_bullish: bool = False, wallet_list: list = None) -> tuple:
         """
         Giriş koşullarını kontrol et.
 
@@ -159,6 +160,21 @@ class VirtualTrader:
         """
         config = _get_strategy_config(scenario_num)
         scenario = self.portfolio[f"scenario{scenario_num}"]
+
+        # Bullish alert filtresi
+        if config.get("only_bullish_alerts") and not is_bullish:
+            return False, "Bullish alert değil"
+
+        # Smartest wallet filtresi
+        if config.get("only_smartest_wallets"):
+            try:
+                smartest_data = load_smartest_wallets_db() or {}
+                smartest_addrs = {a.lower() for a in smartest_data.get("wallets", {}).keys()}
+                wallet_list_lower = [w.lower() for w in (wallet_list or [])]
+                if not any(w in smartest_addrs for w in wallet_list_lower):
+                    return False, "Smartest wallet yok"
+            except Exception as e:
+                print(f"⚠️ Smartest wallet kontrolü hatası: {e}")
 
         # Bakiye kontrolü
         if scenario["balance_eth"] < config["trade_size_eth"]:
@@ -211,7 +227,8 @@ class VirtualTrader:
         return True, "OK"
 
     def buy_token(self, scenario_num: int, token_address: str, token_symbol: str,
-                  entry_mcap: float, wallet_count: int = 3, change_5min_pct: float = None) -> bool:
+                  entry_mcap: float, wallet_count: int = 3, change_5min_pct: float = None,
+                  is_bullish: bool = False, wallet_list: list = None) -> bool:
         """
         Strateji bazlı token alımı.
 
@@ -222,6 +239,8 @@ class VirtualTrader:
             entry_mcap: Alert anındaki MCap
             wallet_count: Alım yapan cüzdan sayısı
             change_5min_pct: 5dk MCap değişim % (Sniper için zorunlu)
+            is_bullish: 30dk içinde 2+ alert geldi mi
+            wallet_list: Alert'i tetikleyen cüzdan adresleri
         """
         config = _get_strategy_config(scenario_num)
         scenario = self.portfolio[f"scenario{scenario_num}"]
@@ -235,7 +254,8 @@ class VirtualTrader:
 
         # Giriş koşullarını kontrol et
         can_enter, reason = self._check_entry_conditions(
-            scenario_num, entry_mcap, wallet_count, change_5min_pct
+            scenario_num, entry_mcap, wallet_count, change_5min_pct,
+            is_bullish=is_bullish, wallet_list=wallet_list
         )
         if not can_enter:
             print(f"⏭️ {tag}: {token_symbol} SKIP → {reason}")

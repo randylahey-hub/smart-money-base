@@ -77,13 +77,17 @@ async def poll_trade_signals(real_trader):
                 entry_mcap = signal['entry_mcap']
                 trigger_type = signal['trigger_type']
                 wallet_count = signal.get('wallet_count', 3)
+                sig_is_bullish = signal.get('is_bullish', False)
+                sig_wallets = signal.get('wallets_involved') or []
 
-                print(f"\n📡 Sinyal: {token_symbol} ({trigger_type}) | MCap: ${entry_mcap/1e3:.0f}K | Strateji: {strategy_name}")
+                bullish_tag = " 🔥BULLISH" if sig_is_bullish else ""
+                print(f"\n📡 Sinyal: {token_symbol} ({trigger_type}){bullish_tag} | MCap: ${entry_mcap/1e3:.0f}K | Strateji: {strategy_name}")
 
                 # === VIRTUAL TRADING (her zaman aktif) ===
                 try:
                     # Scenario 2 (Speed Demon) her zaman anında alır
-                    v_trader.buy_token(2, token_address, token_symbol, entry_mcap, wallet_count)
+                    v_trader.buy_token(2, token_address, token_symbol, entry_mcap, wallet_count,
+                                       is_bullish=sig_is_bullish, wallet_list=sig_wallets)
 
                     # Scenario 1 (Confirmation Sniper) sadece approved sinyallerde alır
                     if ACTIVE_STRATEGY == "confirmation_sniper":
@@ -91,7 +95,8 @@ async def poll_trade_signals(real_trader):
                         trade_result = signal.get('trade_result') or {}
                         change_5min = trade_result.get('change_5min_pct')
                         v_trader.buy_token(1, token_address, token_symbol, entry_mcap,
-                                          wallet_count, change_5min_pct=change_5min)
+                                          wallet_count, change_5min_pct=change_5min,
+                                          is_bullish=sig_is_bullish, wallet_list=sig_wallets)
                 except Exception as e:
                     print(f"⚠️ Virtual trade hatası: {e}")
 
